@@ -1,15 +1,55 @@
 family,branch,level,skin_name,attachments,visual_notes,perk_note
-pistol9mm,civis,+1,Servicio,mag_stock,"acabado limpio",handling leve
-pistol9mm,civis,+3,Operativa,grip_oem|sights_high,"miras alto contraste",precisión leve
-pistol9mm,civis,+5,Certificada,comp_small|trigger_smooth,"serial visible",retroceso↓
-pistol9mm,civis,+7,Elite,night_sights|ergogrip,"recubrimiento premium",ADS estable
-pistol9mm,civis,+9,Signature,comp_med|optic_micro|mag_ext,"cerámico",primer disparo muy preciso
-pistol9mm,heat,+1,Remendada,mag_stock,"cinta/tornillos",—
-pistol9mm,heat,+3,Sótano,grip_tape,"grabados caseros",spread↑ leve
-pistol9mm,heat,+5,Tuning,comp_short|rudimentary_sight,"ennegrecida",daño↑ leve
-pistol9mm,heat,+7,Raid,mag_ext|flashlight,"signos de uso",penetración↑ leve
-pistol9mm,heat,+9,Underworld,comp_full|optic_micro|mag_drum,"look temible",burst inicial +ROF
+pistol9mm,civis,+1,Servicio,mag_stock,"acabado OEM básico",manejo leve
+pistol9mm,civis,+2,Operativa A,grip_oem,"texturizado ergonómico",precisión leve
+pistol9mm,civis,+3,Operativa B,grip_oem|sights_high,"miras alto contraste",ads estable
+pistol9mm,civis,+4,Operativa C,grip_oem|sights_high|trigger_smooth,"disparador afinado",retroceso↓ leve
+pistol9mm,civis,+5,Certificada,comp_small|trigger_smooth,"serial visible",recoil↓
+pistol9mm,civis,+6,Certificada Pro,comp_small|trigger_smooth|guide_rod,"mecanismo pulido",primer disparo muy estable
+pistol9mm,civis,+7,Elite,night_sights|ergogrip,"recubrimiento premium",precisión sostenida
+pistol9mm,civis,+8,Pro Line,comp_med|ergogrip|optic_micro,"acabado cerámico",ads estabilidad+
+pistol9mm,civis,+9,Signature,comp_med|optic_micro|mag_ext,"look de vitrina",consistencia máxima
+pistol9mm,heat,+1,Remendada,mag_stock,"cinta/tornillos visibles",—
+pistol9mm,heat,+2,Chatarrera,mag_stock|grip_tape,"soldaduras y marcas",manejo tosco
+pistol9mm,heat,+3,Sótano,grip_tape|rudimentary_sight,"grabados caseros",spread↑ leve
+pistol9mm,heat,+4,Mercado Gris,grip_tape|comp_short,"ennegrecida",daño↑ leve
+pistol9mm,heat,+5,Tuning,comp_short|rudimentary_sight,"contraste agresivo",daño↑
+pistol9mm,heat,+6,Tuning Pro,comp_short|rudimentary_sight|spring_light,"ciclo rápido",rof↑ leve
+pistol9mm,heat,+7,Raid,mag_ext|flashlight,"signos de uso",penetración↑
+pistol9mm,heat,+8,Underworld,comp_full|mag_ext|optic_micro,"acabado oscuro premium",rof↑ spread↑ leve
+pistol9mm,heat,+9,Underworld Prime,comp_full|optic_micro|mag_drum,"look temible",burst inicial rápido
 smg_compact,civis,+1,Patrulla,mag_stock,"acabado OEM",—
+smg_compact,civis,+2,Industria A,ergogrip,"guardamanos limpio",manejo leve
+smg_compact,civis,+3,Industria B,ergogrip|sights_high,"miras claras",control↓ leve (mejorado)
+smg_compact,civis,+4,Industria C,ergogrip|sights_high|trigger_smooth,"afinado",retroceso↓
+smg_compact,civis,+5,Operador,comp_small|ergogrip,"rail limpio",precisión↑
+smg_compact,civis,+6,Operador Pro,comp_small|ergogrip|optic_micro,"optic micro homologada",ads estable
+smg_compact,civis,+7,Contrato,comp_med|ergogrip|optic_micro,"textura premium",estabilidad sostenida
+smg_compact,civis,+8,Pro Line,comp_med|optic_micro|mag_ext,"kit certificado",control↑
+smg_compact,civis,+9,Signature,comp_full|optic_micro|mag_ext,"acabado cerámico",consistencia máxima
 smg_compact,heat,+1,Chatarrera,mag_stock,"patchwork",—
+smg_compact,heat,+2,Ferro,mag_stock|grip_tape,"soldaduras a la vista",recoil irregular
+smg_compact,heat,+3,Subterránea,grip_tape|rudimentary_sight,"piezas mixtas",spread↑ leve
+smg_compact,heat,+4,Milicia,grip_tape|comp_short,"negro mate",daño↑ leve
+smg_compact,heat,+5,Cartel,comp_short|optic_micro,"miras improvisadas",daño↑
+smg_compact,heat,+6,Cartel Pro,comp_short|optic_micro|spring_light,"ciclo acelerado",rof↑ leve
+smg_compact,heat,+7,Underboss,mag_ext|flashlight,"marcas de golpe",penetración↑
+smg_compact,heat,+8,Blackline,comp_med|optic_micro|mag_ext,"look criminal pulido",rof↑ spread↑ leve
+smg_compact,heat,+9,Warlord,comp_full|optic_micro|mag_drum,"estética intimidante",burst inicial rápido
 rifle556,civis,+1,Training,mag_stock,"rail limpio",—
+rifle556,civis,+2,Certified A,ergofore,"guardamanos OEM",control leve
+rifle556,civis,+3,Certified B,ergofore|sights_high,"miras alta visibilidad",precisión leve
+rifle556,civis,+4,Certified C,ergofore|sights_high|trigger_smooth,"afinado",retroceso↓
+rifle556,civis,+5,Marksman,comp_small|ergofore,"recámara pulida",precisión↑
+rifle556,civis,+6,Marksman Pro,comp_small|ergofore|optic_micro,"optic micro",ads estable
+rifle556,civis,+7,Tactical,comp_med|ergofore|optic_micro,"acabado premium",consistencia↑
+rifle556,civis,+8,Signature,comp_med|optic_micro|mag_ext,"kit OEM completo",estabilidad sostenida
+rifle556,civis,+9,Signature Pro,comp_full|optic_micro|mag_ext,"cerámico",consistencia máxima
 rifle556,heat,+1,Chatarra,mag_stock,"soldaduras visibles",—
+rifle556,heat,+2,Ferro A,mag_stock|grip_tape,"guardamanos recortado",manejo tosco
+rifle556,heat,+3,Ferro B,grip_tape|rudimentary_sight,"miras ghetto",spread↑ leve
+rifle556,heat,+4,Milicia,grip_tape|comp_short,"ennegrecido",daño↑ leve
+rifle556,heat,+5,Patchwork,comp_short|optic_micro,"piezas mixtas",daño↑
+rifle556,heat,+6,Patchwork Pro,comp_short|optic_micro|spring_light,"ciclo acelerado",rof↑ leve
+rifle556,heat,+7,Raid,mag_ext|flashlight,"golpes y cintas",penetración↑
+rifle556,heat,+8,Warlord,comp_med|optic_micro|mag_ext,"look oscuro premium",rof↑ spread↑ leve
+rifle556,heat,+9,Warlord Prime,comp_full|optic_micro|mag_drum,"intimidante",burst inicial rápido
