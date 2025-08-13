@@ -1,0 +1,15 @@
+family,branch,level,skin_name,attachments,visual_notes,perk_note
+pistol9mm,civis,+1,Servicio,mag_stock,"acabado limpio",handling leve
+pistol9mm,civis,+3,Operativa,grip_oem|sights_high,"miras alto contraste",precisión leve
+pistol9mm,civis,+5,Certificada,comp_small|trigger_smooth,"serial visible",retroceso↓
+pistol9mm,civis,+7,Elite,night_sights|ergogrip,"recubrimiento premium",ADS estable
+pistol9mm,civis,+9,Signature,comp_med|optic_micro|mag_ext,"cerámico",primer disparo muy preciso
+pistol9mm,heat,+1,Remendada,mag_stock,"cinta/tornillos",—
+pistol9mm,heat,+3,Sótano,grip_tape,"grabados caseros",spread↑ leve
+pistol9mm,heat,+5,Tuning,comp_short|rudimentary_sight,"ennegrecida",daño↑ leve
+pistol9mm,heat,+7,Raid,mag_ext|flashlight,"signos de uso",penetración↑ leve
+pistol9mm,heat,+9,Underworld,comp_full|optic_micro|mag_drum,"look temible",burst inicial +ROF
+smg_compact,civis,+1,Patrulla,mag_stock,"acabado OEM",—
+smg_compact,heat,+1,Chatarrera,mag_stock,"patchwork",—
+rifle556,civis,+1,Training,mag_stock,"rail limpio",—
+rifle556,heat,+1,Chatarra,mag_stock,"soldaduras visibles",—

@@ -1,0 +1,11 @@
+# Progresión
+- Niveles por rama: 0→+9 (0 neutro)
+- “Desbloquear” vs “Equipar”:
+  - Desbloqueo = blueprint (skin + attachments + micro-perk)
+  - Equipar = pagar $/materiales/tiempo en taller (CIVIS legal / HEAT clandestino)
+- Ascensión:
+  - Al reclamar +9, desbloqueas el chasis superior de la MISMA rama
+  - Reinicia 0→+9 en el chasis nuevo; emblema cosmético de maestría
+- Estética:
+  - +1 fea/remendada → +9 icónica
+  - CIVIS = acabado OEM/precisión/estabilidad; HEAT = look criminal/potencia/trade-offs

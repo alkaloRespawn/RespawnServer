@@ -1,0 +1,24 @@
+# FiveM / txAdmin
+**/cache/
+**/logs/
+txData/
+
+# Node/Yarn
+**/node_modules/
+**/.pnp.cjs
+**/.pnp.loader.mjs
+**/.yarn/*
+**/.yarn-cache/
+**/yarn-cache/
+**/.parcel-cache/
+**/.vite/
+
+# SO / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Secretos
+*.key
+*.env
