@@ -384,7 +384,13 @@ QBShared.Items = {
     newsbmic                     = { name = 'newsbmic', label = 'Boom Microphone', weight = 100, type = 'item', image = 'newsbmic.png', unique = true, useable = true, shouldClose = true, description = 'A Useable BoomMic' },
 
     -- Crafting table's
-    item_bench = {name = "item_bench", label = "Workbench", weight = 15000, type = "item", image = "workbench.png", unique = true, useable = true, shouldClose = false, combinable = nil, description = "A workbench to craft items."},
-    attachment_bench = {name = "attachment_bench", label = "Attachment Workbench", weight = 15000, type = "item", image = "attworkbench.png", unique = true, useable = true, shouldClose = false, combinable = nil, description = "A workbench for crafting attachments."},
+    item_bench                   = { name = "item_bench", label = "Workbench", weight = 15000, type = "item", image = "workbench.png", unique = true, useable = true, shouldClose = false, combinable = nil, description = "A workbench to craft items."},
+    attachment_bench             = { name = "attachment_bench", label = "Attachment Workbench", weight = 15000, type = "item", image = "attworkbench.png", unique = true, useable = true, shouldClose = false, combinable = nil, description = "A workbench for crafting attachments."},
+    cert_oem                     = { name = 'cert_oem',     label = 'Certificado OEM',    weight = 100,  type = 'item', image = 'cert_oem.png',     unique = false, useable = false, shouldClose = true, description = 'Certificado de pieza homologada (taller legal)' },
+    license_form                 = { name = 'license_form', label = 'Licencia de Taller', weight = 100,  type = 'item', image = 'license_form.png', unique = false, useable = false, shouldClose = true, description = 'Documentación y licencias del taller corporativo' },
+    kit_ceramic                  = { name = 'kit_ceramic',  label = 'Kit Cerámico',       weight = 300,  type = 'item', image = 'kit_ceramic.png',  unique = false, useable = false, shouldClose = true, description = 'Acabado cerámico premium (ruta CIVIS)' },
+    folio_blank                  = { name = 'folio_blank',  label = 'Folio/Serie',        weight = 50,   type = 'item', image = 'folio_blank.png',  unique = false, useable = false, shouldClose = true, description = 'Folio con número de serie para trazabilidad' },
+    hot_parts                    = { name = 'hot_parts',    label = 'Piezas Calientes',   weight = 500,  type = 'item', image = 'hot_parts.png',    unique = false, useable = false, shouldClose = true, description = 'Piezas de procedencia dudosa (ruta HEAT)' },
+    powder_fine                  = { name = 'powder_fine',  label = 'Pólvora Fina',       weight = 200,  type = 'item', image = 'powder_fine.png',  unique = false, useable = false, shouldClose = true, description = 'Pólvora refinada para ajustes clandestinos' },
 
 }

@@ -154,21 +154,27 @@ function renderAll() {
   els.hudRep.style.width = '20%';
 }
 
-function openModal(branch, entry) {
-  // Determinar si es HEAT o CIVIS para lugar/coste/tiempo mock
-  const place = branch === 'civis' ? t('modal_claim_place_civis') : t('modal_claim_place_heat');
+async function openModal(branch, entry) {
+  // pide preview al server (coste/tiempo/lugar/materiales)
+  const r = await Nui.post('inspect', { family: AppState.familyKey, branch, level: entry.level });
+  const prev = (r && r.preview) || { placeLabel:'—', costCash:0, timeSec:0, materials:{} };
+
   els.modalTitle.textContent = t('modal_claim_title', { level: `+${entry.level}`, skin: entry.skin_name });
-  els.valPlace.textContent = place;
-  els.valCost.textContent = '$ —';
-  els.valTime.textContent = '—';
-  els.valAtts.textContent = (entry.attachments||[]).join(', ') || '—';
+  els.valPlace.textContent = prev.placeLabel || '—';
+  els.valCost.textContent  = (prev.costCash || 0) > 0 ? `$ ${prev.costCash}` : '$ 0';
+  els.valTime.textContent  = (prev.timeSec || 0) + 's';
+  const mats = prev.materials || {};
+  const matsStr = Object.keys(mats).length ? Object.entries(mats).map(([k,v])=>`${k}×${v}`).join(', ') : '—';
+  els.valAtts.textContent = (entry.attachments||[]).join(', ') || '—' ;
+  // añade materiales al final
+  els.valAtts.textContent += (matsStr==='—' ? '' : ` | Mats: ${matsStr}`);
 
   els.btnClaim.onclick = async () => {
-    const r = await Nui.post('claim', { family: AppState.familyKey, branch, level: entry.level });
+    await Nui.post('claim', { family: AppState.familyKey, branch, level: entry.level });
     closeModal();
   };
   els.btnEquip.onclick = async () => {
-    const r = await Nui.post('equip', { family: AppState.familyKey, level: entry.level });
+    await Nui.post('equip', { family: AppState.familyKey, level: entry.level });
     closeModal();
   };
   els.btnCancel.onclick = closeModal;

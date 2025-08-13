@@ -31,3 +31,12 @@ RegisterNUICallback('equip', function(data, cb)
     TriggerServerEvent('respawn:weapons:equip', data.family, data.level)
     cb({ ok = true })
 end)
+
+-- ... (resto igual que te di)
+RegisterNUICallback('inspect', function(data, cb)
+    -- data: { family, branch, level }
+    QBCore.Functions.TriggerCallback('respawn:workshop:getPreview', function(prev)
+        cb({ ok = true, preview = prev })
+    end, data.family, data.branch, data.level)
+end)
+

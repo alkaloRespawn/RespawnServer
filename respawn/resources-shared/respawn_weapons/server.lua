@@ -63,38 +63,31 @@ QBCore.Functions.CreateCallback('respawn:weapons:getState', function(src, cb)
   cb(state)
 end)
 
--- ====== EVENTO: reclamar blueprint ======
+-- ====== EVENTO: reclamar blueprint (vía taller) ======
 RegisterNetEvent('respawn:weapons:claim', function(family, branch, level)
   local src = source
+  local ok, info = exports.respawn_workshops:RequestClaim(src, family, branch, level)
+  if not (Catalog and Catalog.families and Catalog.families[family]) then
+  TriggerClientEvent('QBCore:Notify', src, 'Familia de arma inválida.', 'error'); return
+  end
+
+  if not ok then
+    TriggerClientEvent('QBCore:Notify', src, 'No se pudo iniciar el trabajo: '..(info or 'error'), 'error')
+  else
+    local wait = (info and info.wait) or 0
+    TriggerClientEvent('QBCore:Notify', src, ('Encargo iniciado: listo en %ds'):format(wait), 'primary')
+  end
+end)
+
+-- ====== Grant interno (llamado por workshops al completar) ======
+AddEventHandler('respawn:weapons:grantBlueprint', function(src, family, branch, level)
   local Player = QBCore.Functions.GetPlayer(src); if not Player then return end
-  level = tonumber(level or 0) or 0
-  branch = (branch=='heat' and 'heat') or 'civis'
-
-  -- valida elegibilidad
-  local eligible = getEligibleLevel(src, branch)
-  if level < 1 or level > eligible then
-    TriggerClientEvent('QBCore:Notify', src, 'No eres elegible aún.', 'error'); return
-  end
-
-  -- valida +7+8+9 cooldown/branch
-  local isHigh = (level>=7)
-  if isHigh then
-    local ok, why = canClaimHighTier(src, branch)
-    if not ok then
-      TriggerClientEvent('QBCore:Notify', src, 'Bloqueado por lealtad o bando ('..(why or '')..')', 'error'); return
-    end
-  end
-
-  -- (Costo: placeholder 0$) — aquí integrarás materiales/economía
-  -- Player.Functions.RemoveMoney('cash', COSTO, 'respawn-claim') -> TODO
-
-  -- guarda
   local cid = Player.PlayerData.citizenid
   ox:execute('INSERT IGNORE INTO respawn_weapons_blueprints (citizenid,family,branch,level) VALUES (?,?,?,?)',
     {cid, family, branch, level})
-
   TriggerClientEvent('QBCore:Notify', src, ('Desbloqueado %s +%d (%s)'):format(family, level, branch), 'success')
 end)
+
 
 -- ====== EVENTO: equipar nivel ======
 RegisterNetEvent('respawn:weapons:equip', function(family, level)
@@ -125,3 +118,4 @@ RegisterNetEvent('respawn:weapons:equip', function(family, level)
     {cid, family, level})
   TriggerClientEvent('QBCore:Notify', src, ('Equipado %s +%d'):format(family, level), 'success')
 end)
+
