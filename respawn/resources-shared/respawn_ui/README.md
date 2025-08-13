@@ -13,3 +13,8 @@
 ## Accesibilidad/UX
 - Tooltips de attachments
 - Etiquetas claras de exclusividad de bando y cooldown
+
+# respawn_ui
+- Panel de armas: dos columnas (HEAT/CIVIS), filas 0..9, estados y botón RECLAMAR.
+- HUD: barras HEAT/CIVIS/Rep y toasts.
+- Locales ES/EN en locales/*.json

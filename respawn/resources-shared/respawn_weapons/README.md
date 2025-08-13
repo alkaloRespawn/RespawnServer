@@ -20,3 +20,14 @@
 ## Reglas
 - +7/+8/+9 requieren branch activo y no estar en cooldown de lealtad
 - +1..+6 del bando opuesto = cosmético (sin bonus) o bloqueado (según setting)
+
+# respawn_weapons
+- Catálogo de skins/attachments por familia, rama y nivel (+1..+9).
+- Estados por jugador: elegible, reclamado (blueprint), equipado.
+- Reglas de exclusividad +7/+8/+9 (bando activo).
+
+## Exports (planeados)
+- GetCatalogEntry(family, branch, level)
+- ClaimBlueprint(playerId, family, branch, level)
+- EquipLevel(playerId, family, level)
+- UnlockAscension(playerId, family, branch)

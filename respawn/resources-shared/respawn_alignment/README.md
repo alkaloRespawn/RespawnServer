@@ -21,3 +21,13 @@
 - Validación server-authoritative de cambios de score
 - Rate limit por acción
 - Logs de auditoría
+
+# respawn_alignment
+- Expone branch activo con histéresis (B=10) y cooldown de lealtad (48h).
+- Mapea scores a nivel elegible 0..9.
+- Validación server-side (sin implementación en esta fase).
+
+## Exports (planeados)
+- GetActiveBranch(playerId) -> 'heat'|'civis'|'neutral'
+- GetEligibleLevel(playerId, branch) -> 0..9
+- CanClaimHighTier(playerId, branch) -> bool (respeta cooldown)
