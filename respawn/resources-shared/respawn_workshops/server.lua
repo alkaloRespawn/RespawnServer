@@ -2,7 +2,7 @@ local QBCore = exports['qb-core']:GetCoreObject()
 local ox = exports.oxmysql
 local inv = exports.ox_inventory
 
--- SQL: cola de trabajo
+-- Cola SQL
 CreateThread(function()
   ox:execute([[
     CREATE TABLE IF NOT EXISTS respawn_work_orders (
@@ -21,35 +21,16 @@ end)
 
 local function now() return os.time() end
 
--- Reprograma órdenes pendientes tras reinicio
+-- reprogramar pendientes
 function resumePendingOrders()
   local rows = ox:executeSync("SELECT * FROM respawn_work_orders WHERE status='pending'", {})
   for _,r in ipairs(rows or {}) do
     local remain = math.max(1, r.ready_at - now())
-    SetTimeout(remain*1000, function()
-      deliverOrder(r.id, r.citizenid, r.family, r.branch, r.level)
-    end)
+    SetTimeout(remain*1000, function() deliverOrder(r.id, r.citizenid, r.family, r.branch, r.level) end)
   end
 end
 
--- Prev: coste/tiempo/lugar/materiales
-local function getPreview(branch, level)
-  local place = Workshops[branch]
-  return {
-    placeLabel = place and place.label or (branch=='civis' and 'Taller Corporativo' or 'Taller Clandestino'),
-    costCash   = Pricing.cash[level] or 0,
-    timeSec    = Pricing.timeSec[level] or 0,
-    materials  = GetMatBlock(branch, level).items or {}
-  }
-end
-
--- Export/callback para UI
-lib = lib or {} -- evita error si usas ox_lib; no es requerido
-QBCore.Functions.CreateCallback('respawn:workshop:getPreview', function(src, cb, family, branch, level)
-  cb(getPreview(branch, tonumber(level or 1)))
-end)
-
--- Validaciones de alignment/elegibilidad
+-- elegibilidad/alignment
 local function getEligibleLevel(src, branch)
   return exports.respawn_alignment:GetEligibleLevel(src, branch)
 end
@@ -60,25 +41,36 @@ local function getActiveBranch(src)
   return exports.respawn_alignment:GetActiveBranch(src)
 end
 
--- Util: contar items en ox_inventory
-local function hasMaterials(src, mat) -- mat = { itemName = count, ... }
-  for name,need in pairs(mat) do
+-- preview coste/tiempo/materiales
+local function getPreview(branch, level)
+  local place = Workshops[branch]
+  return {
+    placeLabel = place and place.label or (branch=='civis' and 'Taller Corporativo' or 'Taller Clandestino'),
+    costCash   = Pricing.cash[level] or 0,
+    timeSec    = Pricing.timeSec[level] or 0,
+    materials  = GetMatBlock(branch, level).items or {}
+  }
+end
+
+QBCore.Functions.CreateCallback('respawn:workshop:getPreview', function(src, cb, family, branch, level)
+  cb(getPreview(branch, tonumber(level or 1)))
+end)
+
+-- util inventario
+local function hasMaterials(src, mat)
+  for name,need in pairs(mat or {}) do
     local count = exports.ox_inventory:GetItemCount(src, name)
-    if (count or 0) < need then return false, name, need, count or 0 end
+    if (count or 0) < need then return false, name, need, (count or 0) end
   end
   return true
 end
-
 local function removeMaterials(src, mat)
-  for name,need in pairs(mat) do
-    inv:RemoveItem(src, name, need)
-  end
+  for name,need in pairs(mat or {}) do exports.ox_inventory:RemoveItem(src, name, need) end
 end
 
--- Entregar la orden: concede blueprint
+-- entregar orden → grant blueprint
 function deliverOrder(id, citizenid, family, branch, level)
   ox:execute('UPDATE respawn_work_orders SET status=? WHERE id=?', {'ready', id})
-  -- Busca src online de ese citizenid
   for _,src in pairs(QBCore.Functions.GetPlayers()) do
     local Player = QBCore.Functions.GetPlayer(src)
     if Player and Player.PlayerData.citizenid == citizenid then
@@ -88,55 +80,81 @@ function deliverOrder(id, citizenid, family, branch, level)
       return
     end
   end
-  -- Si no está online, quedará como 'ready'; al conectar y abrir panel, puedes mostrar recogida
 end
 
--- =========== API principal ===========
--- RequestClaim: valida, cobra, guarda orden y programa entrega
+-- solicitar claim (validación completa)
 exports('RequestClaim', function(src, family, branch, level)
   local Player = QBCore.Functions.GetPlayer(src); if not Player then return false, 'no-player' end
-  level = tonumber(level or 0) or 0; branch = (branch=='heat' and 'heat') or 'civis'
-
-  -- elegibilidad
+  branch = (branch=='heat' and 'heat') or 'civis'
+  level = tonumber(level or 0) or 0
   local eligible = getEligibleLevel(src, branch)
   if level < 1 or level > eligible then return false, 'not-eligible' end
   if level >= 7 then
     local ok, why = canClaimHighTier(src, branch)
     if not ok then return false, why or 'loyalty' end
   end
-
-  -- coste y materiales
   local prev = getPreview(branch, level)
-  local costCash = prev.costCash
-  local mats = prev.materials
+  local costCash = prev.costCash or 0
+  local mats = prev.materials or {}
 
-  -- check fondos
   if Player.Functions.GetMoney('cash') < costCash then return false, 'no-cash' end
-  -- check items
-  local ok, name, want, have = hasMaterials(src, mats)
-  if not ok then return false, ('no-item:%s|need:%d|have:%d'):format(name, want, have) end
+  local ok, name, need, have = hasMaterials(src, mats)
+  if not ok then return false, ('no-item:%s|need:%d|have:%d'):format(name,need,have) end
 
-  -- cobrar
-  if costCash > 0 then Player.Functions.RemoveMoney('cash', costCash, 'respawn-workshop-claim') end
+  if costCash>0 then Player.Functions.RemoveMoney('cash', costCash, 'respawn-claim') end
   removeMaterials(src, mats)
 
-  -- crear orden
-  local ready = now() + (prev.timeSec or 0)
   local cid = Player.PlayerData.citizenid
+  local ready = now() + (prev.timeSec or 0)
   local id = ox:executeSync('INSERT INTO respawn_work_orders (citizenid,family,branch,level,ready_at) VALUES (?,?,?,?,?)',
     {cid, family, branch, level, ready})
-  -- programar entrega
-  local waitMs = math.max(1, (prev.timeSec or 0)*1000)
-  SetTimeout(waitMs, function()
-    deliverOrder(id, cid, family, branch, level)
-  end)
-  -- log
-  logEvent('level_order', {pid=cid,family=family,branch=branch,level=level,cash=costCash,shop=branch,sec=prev.timeSec})
 
+  SetTimeout((prev.timeSec or 0)*1000, function() deliverOrder(id, cid, family, branch, level) end)
+  logEvent('level_order', {pid=cid,family=family,branch=branch,level=level,cash=costCash,shop=branch,sec=prev.timeSec})
   return true, { id=id, ready_at=ready, wait=prev.timeSec }
 end)
 
--- Telemetría simple (consola + webhook opcional)
+-- ===== Quick-Claim: siguiente nivel elegible NO reclamado (por rama) =====
+local function nextClaimableFor(src, branch)
+  local Player = QBCore.Functions.GetPlayer(src); if not Player then return nil end
+  local cid = Player.PlayerData.citizenid
+  local families = exports.respawn_weapons:GetCatalogFamilies()
+  local eligible = getEligibleLevel(src, branch)
+  if eligible < 1 then return nil end
+
+  for famKey,_ in pairs(families) do
+    local rows = ox:executeSync('SELECT level FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND branch=?',
+      {cid, famKey, branch}) or {}
+    local claimed = {}
+    for _,r in ipairs(rows) do claimed[tonumber(r.level)] = true end
+    for lvl=eligible,1,-1 do
+      if not claimed[lvl] then
+        return { family=famKey, level=lvl, branch=branch }
+      end
+    end
+  end
+  return nil
+end
+
+QBCore.Functions.CreateCallback('respawn:workshop:quickCandidate', function(src, cb, branch)
+  cb(nextClaimableFor(src, branch))
+end)
+
+RegisterNetEvent('respawn:workshop:quickClaim', function(branch)
+  local src = source
+  local cand = nextClaimableFor(src, branch)
+  if not cand then
+    TriggerClientEvent('QBCore:Notify', src, 'Nada disponible para reclamar en esta rama.', 'error'); return
+  end
+  local ok, info = exports.respawn_workshops:RequestClaim(src, cand.family, cand.branch, cand.level)
+  if not ok then
+    TriggerClientEvent('QBCore:Notify', src, 'No se pudo iniciar: '..(info or 'error'), 'error')
+  else
+    TriggerClientEvent('QBCore:Notify', src, ('Encargo %s +%d → %ds'):format(cand.family, cand.level, (info.wait or 0)), 'primary')
+  end
+end)
+
+-- Telemetría simple
 local webhook = GetConvar('respawn_webhook','')
 function logEvent(ev, data)
   local row = json.encode({ev=ev, ts=os.date('!%Y-%m-%dT%H:%M:%SZ'), data=data})

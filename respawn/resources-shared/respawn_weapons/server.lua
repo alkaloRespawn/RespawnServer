@@ -4,6 +4,11 @@ local ox = exports.oxmysql
 -- Carga catálogo
 local catalogJson = LoadResourceFile(GetCurrentResourceName(), 'data/weapons_catalog.json')
 local Catalog = json.decode(catalogJson or '{}')
+-- EXPORTS para otros recursos
+exports('GetCatalogFamilies', function()
+  return Catalog and Catalog.families or {}
+end)
+
 
 -- SQL
 CreateThread(function()
