@@ -2,6 +2,78 @@ local QBCore = exports['qb-core']:GetCoreObject()
 local ox = exports.oxmysql
 local inv = exports.ox_inventory
 
+-- ========= NUEVO: enumerar opciones quick-claim por familia =========
+local function listQuickOptions(src, branch)
+  local Player = QBCore.Functions.GetPlayer(src); if not Player then return {} end
+  branch = (branch=='heat' and 'heat') or 'civis'
+  local cid = Player.PlayerData.citizenid
+  local families = exports.respawn_weapons:GetCatalogFamilies() or {}
+  local eligible = exports.respawn_alignment:GetEligibleLevel(src, branch)
+  if eligible < 1 then return {} end
+
+  local opts = {}
+  for famKey, famData in pairs(families) do
+    -- ¿qué niveles de esa rama existen?
+    local branchLevels = famData.levels and famData.levels[branch]
+    if branchLevels and #branchLevels > 0 then
+      -- blueprint ya reclamados por esta familia/rama
+      local rows = ox:executeSync(
+        'SELECT level FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND branch=?',
+        {cid, famKey, branch}
+      ) or {}
+      local claimed = {}
+      for _,r in ipairs(rows) do claimed[tonumber(r.level)] = true end
+
+      -- busca el máximo nivel ≤ elegible que no está reclamado
+      local candidate = nil
+      for lvl = eligible, 1, -1 do
+        if not claimed[lvl] then
+          candidate = lvl; break
+        end
+      end
+
+      if candidate then
+        local prev = {
+          placeLabel = (Workshops[branch] and Workshops[branch].label) or branch,
+          costCash   = (Pricing.cash[candidate] or 0),
+          timeSec    = (Pricing.timeSec[candidate] or 0),
+          materials  = GetMatBlock(branch, candidate).items or {}
+        }
+        table.insert(opts, {
+          family = famKey,
+          family_label = famData.display_name or famKey,
+          branch = branch,
+          level = candidate,
+          preview = prev
+        })
+      end
+    end
+  end
+
+  -- Ordena opciones: mayor nivel primero, luego por nombre de familia
+  table.sort(opts, function(a,b)
+    if a.level == b.level then return (a.family_label < b.family_label) end
+    return a.level > b.level
+  end)
+  return opts
+end
+
+QBCore.Functions.CreateCallback('respawn:workshop:listQuickOptions', function(src, cb, branch)
+  cb(listQuickOptions(src, branch))
+end)
+
+-- ========= NUEVO: quick-claim específico (familia elegida) =========
+RegisterNetEvent('respawn:workshop:quickClaimSpecific', function(branch, family, level)
+  local src = source
+  local ok, info = exports.respawn_workshops:RequestClaim(src, family, branch, level)
+  if not ok then
+    TriggerClientEvent('QBCore:Notify', src, 'No se pudo iniciar: '..(info or 'error'), 'error')
+  else
+    TriggerClientEvent('QBCore:Notify', src,
+      ('Encargo %s +%d → %ds'):format(family, tonumber(level or 0), (info.wait or 0)), 'primary')
+  end
+end)
+
 -- Cola SQL
 CreateThread(function()
   ox:execute([[

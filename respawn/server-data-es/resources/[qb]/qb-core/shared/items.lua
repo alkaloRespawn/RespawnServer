@@ -386,6 +386,7 @@ QBShared.Items = {
     -- Crafting table's
     item_bench                   = { name = "item_bench", label = "Workbench", weight = 15000, type = "item", image = "workbench.png", unique = true, useable = true, shouldClose = false, combinable = nil, description = "A workbench to craft items."},
     attachment_bench             = { name = "attachment_bench", label = "Attachment Workbench", weight = 15000, type = "item", image = "attworkbench.png", unique = true, useable = true, shouldClose = false, combinable = nil, description = "A workbench for crafting attachments."},
+    -- Alkalo
     cert_oem                     = { name = 'cert_oem',     label = 'Certificado OEM',    weight = 100,  type = 'item', image = 'cert_oem.png',     unique = false, useable = false, shouldClose = true, description = 'Certificado de pieza homologada (taller legal)' },
     license_form                 = { name = 'license_form', label = 'Licencia de Taller', weight = 100,  type = 'item', image = 'license_form.png', unique = false, useable = false, shouldClose = true, description = 'Documentación y licencias del taller corporativo' },
     kit_ceramic                  = { name = 'kit_ceramic',  label = 'Kit Cerámico',       weight = 300,  type = 'item', image = 'kit_ceramic.png',  unique = false, useable = false, shouldClose = true, description = 'Acabado cerámico premium (ruta CIVIS)' },
