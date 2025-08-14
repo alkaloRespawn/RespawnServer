@@ -1,15 +1,20 @@
 fx_version 'cerulean'
 game 'gta5'
-name 'respawn_weapons'
-description 'Respawn - Weapons catalog & claiming'
-version '0.3.0'
 lua54 'yes'
 
-files { 'data/weapons_catalog.json' }
 shared_scripts {
-  'progression.lua',
-  'data/weapons_catalog.json'
+  '@qb-core/shared/locale.lua',
+  'progression.lua'
 }
 
-server_scripts { 'server.lua' }
-client_scripts { 'client.lua' }
+server_scripts {
+  'server.lua'
+}
+
+client_scripts {
+  'client.lua'
+}
+
+files {
+  'data/weapons_catalog.json'
+}

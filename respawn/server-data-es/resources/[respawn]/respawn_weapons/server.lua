@@ -84,6 +84,27 @@ RegisterNetEvent('respawn:weapons:claim', function(family, branch, level)
   end
 end)
 
+local Catalog = {}
+
+local function loadCatalog()
+  local raw = LoadResourceFile(GetCurrentResourceName(), 'data/weapons_catalog.json')
+  assert(raw, '^1[respawn_weapons]^7 weapons_catalog.json no encontrado')
+  local ok, decoded = pcall(json.decode, raw)
+  assert(ok and decoded, '^1[respawn_weapons]^7 JSON inválido en weapons_catalog.json')
+  Catalog = decoded
+end
+
+CreateThread(loadCatalog)
+
+exports('GetCatalogFamilies', function()
+  return Catalog and Catalog.families or {}
+end)
+
+exports('GetProgressionChain', function()
+  return Progression
+end)
+
+
 -- ====== Grant interno (llamado por workshops al completar) ======
 AddEventHandler('respawn:weapons:grantBlueprint', function(src, family, branch, level)
   local Player = QBCore.Functions.GetPlayer(src); if not Player then return end
