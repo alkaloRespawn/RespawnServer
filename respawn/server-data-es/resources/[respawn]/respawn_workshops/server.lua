@@ -24,11 +24,8 @@ local function humanError(code)
   return map[code] or ('Error: '..tostring(code))
 end
 
--- =======================
--- SQL cola de trabajo
--- =======================
-CreateThread(function()
-  ox:execute([[
+local function ensureSchema()
+  ox:executeSync([[
     CREATE TABLE IF NOT EXISTS respawn_work_orders (
       id INT NOT NULL AUTO_INCREMENT,
       citizenid VARCHAR(46) NOT NULL,
@@ -39,21 +36,24 @@ CreateThread(function()
       status VARCHAR(12) NOT NULL DEFAULT 'pending',
       PRIMARY KEY (id)
     )
-  ]])
-  resumePendingOrders()
-end)
-
-local function now() return os.time() end
+  ]], {})
+end
 
 function resumePendingOrders()
   local rows = ox:executeSync("SELECT * FROM respawn_work_orders WHERE status='pending'", {})
   for _,r in ipairs(rows or {}) do
-    local remain = math.max(1, r.ready_at - now())
+    local remain = math.max(1, (r.ready_at or 0) - os.time())
     SetTimeout(remain*1000, function()
       deliverOrder(r.id, r.citizenid, r.family, r.branch, r.level)
     end)
   end
 end
+
+CreateThread(function()
+  ensureSchema()          -- ← bloqueante, asegura la tabla
+  resumePendingOrders()   -- ← ahora sí hacemos el SELECT
+end)
+
 
 -- =======================
 -- Helpers Alignment & Preview
