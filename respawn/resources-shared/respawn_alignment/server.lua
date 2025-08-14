@@ -22,6 +22,21 @@ end)
 
 local function clamp(v, a, b) return math.max(a, math.min(b, v)) end
 
+local function sendClientState(src)
+  local d = P[src]; if not d then return end
+  local st = {
+    heat = d.heat or 0,
+    civis = d.civis or 0,
+    active = d.active or 'neutral',
+    eligible = {
+      heat = levelFromScore(d.heat or 0),
+      civis = levelFromScore(d.civis or 0)
+    }
+  }
+  TriggerClientEvent('respawn:alignment:clientState', src, st)
+end
+
+
 local function levelFromScore(score)
   for _,m in ipairs(AlignmentConfig.ScoreToLevel) do
     if score>=m.min and score<=m.max then return m.lvl end
@@ -67,6 +82,10 @@ end
 
 AddEventHandler('QBCore:Server:PlayerLoaded', function(src) loadPlayer(src) end)
 AddEventHandler('playerDropped', function() savePlayer(source); P[source]=nil end)
+AddEventHandler('QBCore:Server:PlayerLoaded', function(src)
+  loadPlayer(src)
+  sendClientState(src) -- ← para que el HUD tenga valores al entrar
+end)
 
 -- ========= API / Exports =========
 exports('GetActiveBranch', function(src)
@@ -99,6 +118,8 @@ RegisterNetEvent('respawn:alignment:addHeat', function(amount)
   d.active = computeBranch(d.heat, d.civis, d.active)
   if d.active ~= prev then d.lastSwitch = os.time() end
   savePlayer(src)
+  sendClientState(src)
+
 end)
 
 RegisterNetEvent('respawn:alignment:addCivis', function(amount)
@@ -108,6 +129,8 @@ RegisterNetEvent('respawn:alignment:addCivis', function(amount)
   d.active = computeBranch(d.heat, d.civis, d.active)
   if d.active ~= prev then d.lastSwitch = os.time() end
   savePlayer(src)
+  sendClientState(src)
+
 end)
 
 -- ========= Comandos de test (admin) =========
@@ -126,3 +149,10 @@ QBCore.Commands.Add('rsp_setcivis','[Respawn] Set CIVIS score (admin)',{{name='s
   if d.active ~= prev then d.lastSwitch=os.time() end
   savePlayer(src)
 end,'admin')
+
+QBCore.Functions.CreateCallback('respawn:alignment:getClientState', function(src, cb)
+  local d = P[src]; if not d then cb(nil) return end
+  cb({ heat=d.heat, civis=d.civis, active=d.active,
+       eligible={ heat=levelFromScore(d.heat), civis=levelFromScore(d.civis) } })
+end)
+
