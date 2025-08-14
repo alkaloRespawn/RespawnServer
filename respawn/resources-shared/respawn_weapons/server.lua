@@ -93,6 +93,54 @@ AddEventHandler('respawn:weapons:grantBlueprint', function(src, family, branch, 
   TriggerClientEvent('QBCore:Notify', src, ('Desbloqueado %s +%d (%s)'):format(family, level, branch), 'success')
 end)
 
+local function playerHasBlueprint(cid, family, branch, level)
+  local r = ox:executeSync('SELECT 1 FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND branch=? AND level=? LIMIT 1',
+    {cid, family, branch, level})
+  return r and r[1] ~= nil
+end
+
+local function playerHasAnyLevel0(cid, family)
+  -- Nivel 0 puede existir en heat o civis (lo tratamos simétrico)
+  local r = ox:executeSync('SELECT 1 FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND level=0 LIMIT 1',
+    {cid, family})
+  return r and r[1] ~= nil
+end
+
+local function groupCompleted(cid, branch, families)
+  for _,fam in ipairs(families) do
+    if not playerHasBlueprint(cid, fam, branch, 9) then
+      return false
+    end
+  end
+  return true
+end
+
+local function getActiveGroupIndex(cid, branch)
+  -- 0 = antes del Grupo 1 (solo cuchillo). 1..N = grupos de Progression[branch]
+  -- requisito previo: tener cuchillo (nivel 0) reclamado
+  local hasKnife = playerHasAnyLevel0(cid, 'knife_basic')
+  if not hasKnife then return 0 end
+  local chain = Progression[branch] or {}
+  local idx = 1
+  for i, families in ipairs(chain) do
+    if groupCompleted(cid, branch, families) then
+      idx = i + 1
+    else
+      break
+    end
+  end
+  return idx -- si devuelve 1: estás en Grupo 1; si devuelve #chain+1: por encima del último grupo
+end
+
+local function familyInGroup(branch, idx, family)
+  local chain = Progression[branch] or {}
+  local g = chain[idx]
+  if not g then return false end
+  for _,f in ipairs(g) do if f == family then return true end end
+  return false
+end
+
+
 
 -- ====== EVENTO: equipar nivel ======
 RegisterNetEvent('respawn:weapons:equip', function(family, level)

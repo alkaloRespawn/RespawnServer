@@ -110,7 +110,9 @@ function levelState(branch, level, claimedLevels) {
     // Si es nivel alto exclusivo y el bando no coincide → bloqueado por bando
     const high = AppState.data.align.exclusiveHighTiers || [7,8,9];
     if (high.includes(level) && active !== branch) return { cls:'blocked', text:t('status_blocked_by_branch') };
-    return { cls:'eligible', text:t('status_eligible') };
+    if (level === 0) return { cls:'eligible', text:t('status_eligible') };
+
+
   }
   return { cls:'locked', text:t('status_locked') };
 }
@@ -127,7 +129,15 @@ function renderColumn(branch) {
     const li = document.createElement('li');
     li.className = 'level';
 
-    const nm = document.createElement('div'); nm.className='name'; nm.textContent = `+${entry.level} — ${entry.skin_name}`;
+    const lv = entry.level;
+let levelLabel = '0';
+if (lv > 0) {
+  levelLabel = (branch === 'civis') ? `-${lv}` : `+${lv}`;
+}
+const nm = document.createElement('div');
+nm.className='name';
+nm.textContent = `${levelLabel} — ${entry.skin_name}`;
+
     const at = document.createElement('div'); at.className='atts'; at.textContent = (entry.attachments||[]).join(', ') || '—';
 
     const stInfo = levelState(branch, entry.level, claimedLevels);

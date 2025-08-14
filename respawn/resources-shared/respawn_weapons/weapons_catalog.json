@@ -1,41 +1,44 @@
 {
   "meta": {
-    "attachmentsGlossary": [
-      "mag_stock","mag_ext","mag_drum",
-      "grip_oem","ergogrip","ergofore","grip_tape",
-      "sights_high","night_sights","optic_micro",
-      "comp_small","comp_med","comp_full",
-      "trigger_smooth","spring_light","rudimentary_sight",
-      "flashlight","guide_rod"
-    ],
-    "notes": "Levels are 0..9; 0 is neutral look. +7/+8/+9 exclusive to active branch."
+    "attachmentsGlossary": ["mag_stock","mag_ext","mag_drum","grip_oem","ergogrip","ergofore","grip_tape","sights_high","night_sights","optic_micro","comp_small","comp_med","comp_full","trigger_smooth","spring_light","rudimentary_sight","flashlight","guide_rod"],
+    "notes": "CIVIS muestra niveles como negativos en UI; en DB siguen siendo 0..9."
   },
   "families": {
+    "knife_basic": {
+      "display_name": "Cuchillo",
+      "no_tiers": true,
+      "levels": {
+        "heat":  [ { "level": 0, "skin_name": "Cuchillo (Base)", "attachments": [] } ],
+        "civis": [ { "level": 0, "skin_name": "Cuchillo (Base)", "attachments": [] } ]
+      }
+    },
+
     "pistol9mm": {
       "display_name": "Pistola 9mm",
-      "ascension": { "civis": "pistol9mm_adv", "heat": "pistol9mm_custom" },
       "levels": {
         "civis": [
-          { "level": 1, "skin_name": "Servicio",        "attachments": ["mag_stock"],                                  "visual_notes": "acabado OEM básico",            "perk_note": "manejo leve" },
-          { "level": 2, "skin_name": "Operativa A",     "attachments": ["grip_oem"],                                  "visual_notes": "texturizado ergonómico",       "perk_note": "precisión leve" },
-          { "level": 3, "skin_name": "Operativa B",     "attachments": ["grip_oem","sights_high"],                    "visual_notes": "miras alto contraste",         "perk_note": "ADS estable" },
-          { "level": 4, "skin_name": "Operativa C",     "attachments": ["grip_oem","sights_high","trigger_smooth"],   "visual_notes": "disparador afinado",           "perk_note": "retroceso↓ leve" },
-          { "level": 5, "skin_name": "Certificada",     "attachments": ["comp_small","trigger_smooth"],               "visual_notes": "serial visible",               "perk_note": "recoil↓" },
-          { "level": 6, "skin_name": "Certificada Pro", "attachments": ["comp_small","trigger_smooth","guide_rod"],   "visual_notes": "mecanismo pulido",             "perk_note": "primer disparo muy estable" },
-          { "level": 7, "skin_name": "Elite",           "attachments": ["night_sights","ergogrip"],                    "visual_notes": "recubrimiento premium",        "perk_note": "precisión sostenida" },
-          { "level": 8, "skin_name": "Pro Line",        "attachments": ["comp_med","ergogrip","optic_micro"],         "visual_notes": "acabado cerámico",             "perk_note": "ADS estabilidad+" },
-          { "level": 9, "skin_name": "Signature",       "attachments": ["comp_med","optic_micro","mag_ext"],          "visual_notes": "look de vitrina",              "perk_note": "consistencia máxima" }
+          { "level": 0, "skin_name": "Base (Neutro)", "attachments": [] },
+          { "level": 1, "skin_name": "Servicio", "attachments": ["mag_stock"] },
+          { "level": 2, "skin_name": "Operativa A", "attachments": ["grip_oem"] },
+          { "level": 3, "skin_name": "Operativa B", "attachments": ["grip_oem","sights_high"] },
+          { "level": 4, "skin_name": "Operativa C", "attachments": ["grip_oem","sights_high","trigger_smooth"] },
+          { "level": 5, "skin_name": "Certificada", "attachments": ["comp_small","trigger_smooth"] },
+          { "level": 6, "skin_name": "Certificada Pro", "attachments": ["comp_small","trigger_smooth","guide_rod"] },
+          { "level": 7, "skin_name": "Elite", "attachments": ["night_sights","ergogrip"] },
+          { "level": 8, "skin_name": "Pro Line", "attachments": ["comp_med","ergogrip","optic_micro"] },
+          { "level": 9, "skin_name": "Signature", "attachments": ["comp_med","optic_micro","mag_ext"] }
         ],
         "heat": [
-          { "level": 1, "skin_name": "Remendada",        "attachments": ["mag_stock"],                                 "visual_notes": "cinta/tornillos",              "perk_note": "" },
-          { "level": 2, "skin_name": "Chatarrera",       "attachments": ["mag_stock","grip_tape"],                     "visual_notes": "soldaduras y marcas",          "perk_note": "manejo tosco" },
-          { "level": 3, "skin_name": "Sótano",           "attachments": ["grip_tape","rudimentary_sight"],             "visual_notes": "grabados caseros",             "perk_note": "spread↑ leve" },
-          { "level": 4, "skin_name": "Mercado Gris",     "attachments": ["grip_tape","comp_short"],                    "visual_notes": "ennegrecida",                  "perk_note": "daño↑ leve" },
-          { "level": 5, "skin_name": "Tuning",           "attachments": ["comp_short","rudimentary_sight"],            "visual_notes": "contraste agresivo",           "perk_note": "daño↑" },
-          { "level": 6, "skin_name": "Tuning Pro",       "attachments": ["comp_short","rudimentary_sight","spring_light"], "visual_notes": "ciclo rápido",           "perk_note": "ROF↑ leve" },
-          { "level": 7, "skin_name": "Raid",             "attachments": ["mag_ext","flashlight"],                      "visual_notes": "signos de uso",                "perk_note": "penetración↑" },
-          { "level": 8, "skin_name": "Underworld",       "attachments": ["comp_med","mag_ext","optic_micro"],          "visual_notes": "oscuro premium",               "perk_note": "ROF↑, spread↑ leve" },
-          { "level": 9, "skin_name": "Underworld Prime", "attachments": ["comp_full","optic_micro","mag_drum"],        "visual_notes": "intimidante",                  "perk_note": "burst inicial rápido" }
+          { "level": 0, "skin_name": "Base (Neutro)", "attachments": [] },
+          { "level": 1, "skin_name": "Remendada", "attachments": ["mag_stock"] },
+          { "level": 2, "skin_name": "Chatarrera", "attachments": ["mag_stock","grip_tape"] },
+          { "level": 3, "skin_name": "Sótano", "attachments": ["grip_tape","rudimentary_sight"] },
+          { "level": 4, "skin_name": "Mercado Gris", "attachments": ["grip_tape","comp_short"] },
+          { "level": 5, "skin_name": "Tuning", "attachments": ["comp_short","rudimentary_sight"] },
+          { "level": 6, "skin_name": "Tuning Pro", "attachments": ["comp_short","rudimentary_sight","spring_light"] },
+          { "level": 7, "skin_name": "Raid", "attachments": ["mag_ext","flashlight"] },
+          { "level": 8, "skin_name": "Underworld", "attachments": ["comp_med","mag_ext","optic_micro"] },
+          { "level": 9, "skin_name": "Underworld Prime", "attachments": ["comp_full","optic_micro","mag_drum"] }
         ]
       }
     },

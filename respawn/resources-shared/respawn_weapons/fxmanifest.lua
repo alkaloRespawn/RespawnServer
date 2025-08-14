@@ -6,6 +6,6 @@ version '0.3.0'
 lua54 'yes'
 
 files { 'data/weapons_catalog.json' }
-shared_scripts { '@qb-core/shared/locale.lua' } -- por si quieres locales QB
+shared_scripts { '@qb-core/shared/locale.lua','progression.lua' } -- por si quieres locales QB
 server_scripts { 'server.lua' }
 client_scripts { 'client.lua' }
