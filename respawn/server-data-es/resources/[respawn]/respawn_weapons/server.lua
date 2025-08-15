@@ -1,12 +1,23 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 local ox = exports.oxmysql
+local Catalog = {}
 
--- Carga catálogo
-local catalogJson = LoadResourceFile(GetCurrentResourceName(), 'data/weapons_catalog.json')
-local Catalog = json.decode(catalogJson or '{}')
--- EXPORTS para otros recursos
+local function loadCatalog()
+  local raw = LoadResourceFile(GetCurrentResourceName(), 'data/weapons_catalog.json')
+  assert(raw, '^1[respawn_weapons]^7 weapons_catalog.json no encontrado')
+  local ok, decoded = pcall(json.decode, raw)
+  assert(ok and decoded, '^1[respawn_weapons]^7 JSON inválido en weapons_catalog.json')
+  Catalog = decoded
+end
+
+loadCatalog()
+
 exports('GetCatalogFamilies', function()
   return Catalog and Catalog.families or {}
+end)
+
+exports('GetProgressionChain', function()
+  return Progression
 end)
 
 
@@ -82,27 +93,7 @@ RegisterNetEvent('respawn:weapons:claim', function(family, branch, level)
     local wait = (info and info.wait) or 0
     TriggerClientEvent('QBCore:Notify', src, ('Encargo iniciado: listo en %ds'):format(wait), 'primary')
   end
-end)
-
-local Catalog = {}
-
-local function loadCatalog()
-  local raw = LoadResourceFile(GetCurrentResourceName(), 'data/weapons_catalog.json')
-  assert(raw, '^1[respawn_weapons]^7 weapons_catalog.json no encontrado')
-  local ok, decoded = pcall(json.decode, raw)
-  assert(ok and decoded, '^1[respawn_weapons]^7 JSON inválido en weapons_catalog.json')
-  Catalog = decoded
-end
-
-CreateThread(loadCatalog)
-
-exports('GetCatalogFamilies', function()
-  return Catalog and Catalog.families or {}
-end)
-
-exports('GetProgressionChain', function()
-  return Progression
-end)
+  end)
 
 
 -- ====== Grant interno (llamado por workshops al completar) ======
