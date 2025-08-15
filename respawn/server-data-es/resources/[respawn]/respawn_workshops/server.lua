@@ -1,6 +1,5 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 local ox = exports.oxmysql
-local inv = exports.ox_inventory
 
 -- =======================
 -- Mensajes de error legibles
@@ -84,15 +83,20 @@ end)
 -- =======================
 local function hasMaterials(src, mat)
   for name,need in pairs(mat or {}) do
-    local count = exports.ox_inventory:GetItemCount(src, name)
-    if (count or 0) < need then return false, name, need, (count or 0) end
+    if not QBCore.Functions.HasItem(src, name, need) then
+      local player = QBCore.Functions.GetPlayer(src)
+      local item = player and player.Functions.GetItemByName(name)
+      local count = item and item.amount or 0
+      return false, name, need, count
+    end
   end
   return true
 end
 
 local function removeMaterials(src, mat)
+  local player = QBCore.Functions.GetPlayer(src)
   for name,need in pairs(mat or {}) do
-    exports.ox_inventory:RemoveItem(src, name, need)
+    if player then player.Functions.RemoveItem(name, need) end
   end
 end
 
