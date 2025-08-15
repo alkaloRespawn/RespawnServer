@@ -80,7 +80,6 @@ local function savePlayer(src)
     {d.heat, d.civis, d.active, d.lastSwitch, d.citizenid})
 end
 
-AddEventHandler('QBCore:Server:PlayerLoaded', function(src) loadPlayer(src) end)
 AddEventHandler('playerDropped', function() savePlayer(source); P[source]=nil end)
 AddEventHandler('QBCore:Server:PlayerLoaded', function(src)
   loadPlayer(src)
