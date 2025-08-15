@@ -3,14 +3,14 @@ Workshops = {
     label = 'Taller Corporativo',
     coords = vec3(-339.60, -136.75, 39.00),
     heading = 70.0,
-    pedModel = `s_m_m_autoshop_02`,   -- modelo ped sugerido
+    pedModel = 's_m_m_autoshop_02',   -- modelo ped sugerido
     scenario = 'WORLD_HUMAN_CLIPBOARD'
   },
   heat = {
     label = 'Taller Clandestino',
     coords = vec3(1173.35, -1325.70, 35.20),
     heading = 180.0,
-    pedModel = `g_m_m_cartelguards_01`,
+    pedModel = 'g_m_m_cartelguards_01',
     scenario = 'WORLD_HUMAN_HAMMERING'
   }
 }

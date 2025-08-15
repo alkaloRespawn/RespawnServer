@@ -29,8 +29,11 @@ local function openQuickMenu(branch)
   while not cbReady do Wait(0) end
 
   if (not options) or #options == 0 then
-    lib and lib.notify({title='Respawn', description='Nada disponible para reclamar en esta rama.', type='error'}) or
-    print('[Respawn] Nada disponible para reclamar.')
+    if hasLib and lib and lib.notify then
+      lib.notify({title='Respawn', description='Nada disponible para reclamar en esta rama.', type='error'})
+    else
+      print('[Respawn] Nada disponible para reclamar.')
+    end
     return
   end
 
@@ -62,7 +65,7 @@ local function openQuickMenu(branch)
 end
 
 local function spawnWorkshopNPC(branch, data)
-  local m = loadModel(data.pedModel or `s_m_m_autoshop_02`)
+  local m = loadModel(data.pedModel or 's_m_m_autoshop_02')
   local ped = CreatePed(4, m, data.coords.x, data.coords.y, data.coords.z-1.0, data.heading or 0.0, false, true)
   SetEntityAsMissionEntity(ped, true, true)
   SetBlockingOfNonTemporaryEvents(ped, true)
