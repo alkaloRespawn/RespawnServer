@@ -60,3 +60,44 @@ footer { margin-top:6px; opacity:.7; font-size:12px; text-align:right; }
 /* --- Hotfix de visibilidad: que hidden gane a los selectores por id --- */
 #app.hidden { display: none !important; }
 #modal.hidden { display: none !important; }
+:root { --maxw: 1600px; --maxh: 900px; --pad: 24px; }
+
+html, body {
+  margin: 0; height: 100%; width: 100%;
+  font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #e6e6e6; background: transparent;
+}
+
+/* Fondo oscuro suave */
+body.is-open::before {
+  content: ""; position: fixed; inset: 0;
+  background: rgba(0,0,0,.35); backdrop-filter: blur(2px);
+}
+
+/* Lienzo 16:9 centrado */
+#root {
+  position: fixed; inset: 0; margin: auto;
+  width: min(90vw, var(--maxw));
+  aspect-ratio: 16 / 9;
+  background: rgba(10,10,14,.92);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px;
+  display: grid; grid-template-rows: auto 1fr auto;
+  padding: clamp(12px, 1.8vh, var(--pad));
+  box-shadow: 0 10px 40px rgba(0,0,0,.5);
+}
+
+/* Si la pantalla es más alta (4:3), limitamos altura */
+@media (min-aspect-ratio: 16/9) {
+  #root { height: min(90vh, var(--maxh)); width: auto; }
+}
+
+/* Safe-area iPhone notch, etc. */
+@supports (padding: max(0px)) {
+  #root { padding: max(env(safe-area-inset-top), 16px) max(env(safe-area-inset-right),16px) max(env(safe-area-inset-bottom),16px) max(env(safe-area-inset-left),16px); }
+}
+
+/* Accesibilidad: desactivar foco cuando está cerrado */
+[inert] { pointer-events: none; user-select: none; opacity: .0; }
+body:not(.is-open) #root { transform: scale(.98); opacity: 0; transition: opacity .15s ease, transform .15s ease; }
+body.is-open #root { transform: none; opacity: 1; transition: opacity .18s ease, transform .18s ease; }

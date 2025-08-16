@@ -57,3 +57,7 @@ ensure qb-core
   ```
 
 Si quieres, te preparo un **script `verify-db.bat`** que compruebe contenedor, puerto y conexión con un solo doble-clic.
+
+
+
+docker exec -it respawn_mariadb mysql -u alkalo -p123456 QBCore_A0764D

@@ -187,8 +187,47 @@ function closeUI(){
   Nui.post('close', {});
 }
 
+
 els.btnClose.addEventListener('click', closeUI);
 els.familySelect.addEventListener('change', (e) => { AppState.familyKey = e.target.value; renderAll(); });
+
+let isOpen = false;
+
+// Solo escuchamos 'message' del LUA
+window.addEventListener('message', (e) => {
+  if (!e.data) return;
+  if (e.data.action === 'open') openPanel();
+  if (e.data.action === 'close') closePanel();
+});
+
+function openPanel() {
+  if (isOpen) return;
+  isOpen = true;
+  document.body.classList.add('is-open');
+  document.getElementById('root').removeAttribute('inert');
+}
+
+function closePanel() {
+  if (!isOpen) return;
+  isOpen = false;
+  document.body.classList.remove('is-open');
+  document.getElementById('root').setAttribute('inert', '');
+  fetch(`https://${GetParentResourceName()}/respawn_close`, { method: 'POST', body: '{}' });
+}
+
+// Cierre con ESC SIN volver a disparar toggle accidentalmente
+document.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Escape') {
+    ev.preventDefault();
+    closePanel();
+  }
+});
+
+// Evita “auto-toggle” por keyup si existía
+document.addEventListener('keyup', (ev) => {
+  // vacío a propósito; el toggle vive en LUA
+});
+
 
 window.addEventListener('message', async (ev) => {
   const data = ev.data || {};

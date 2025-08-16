@@ -40,3 +40,41 @@ RegisterNUICallback('inspect', function(data, cb)
     end, data.family, data.branch, data.level)
 end)
 
+local uiOpen = false
+local canToggle = true
+
+RegisterCommand('respawn_toggle_ui', function()
+    if not canToggle then return end
+    canToggle = false
+    uiOpen = not uiOpen
+
+    SetNuiFocus(uiOpen, uiOpen)
+    SetNuiFocusKeepInput(false) -- evita “tragarse” tecleo al salir
+    SendNUIMessage({ action = uiOpen and 'open' or 'close' })
+
+    -- anti-doble pulsación
+    SetTimeout(180, function() canToggle = true end)
+end, false)
+
+-- Mapea F6 -> comando (visible en ajustes de FiveM)
+RegisterKeyMapping('respawn_toggle_ui', 'Respawn: abrir/cerrar panel', 'keyboard', 'F6')
+
+-- Cerrar desde NUI (ESC o botón X)
+RegisterNUICallback('respawn_close', function(_, cb)
+    uiOpen = false
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = 'close' })
+    cb('ok')
+end)
+
+-- Opcional: cerrar si se pierde el focus por alt-tab
+CreateThread(function()
+    while true do
+        if uiOpen and not IsNuiFocused() then
+            uiOpen = false
+            SendNUIMessage({ action = 'close' })
+        end
+        Wait(250)
+    end
+end)
+
