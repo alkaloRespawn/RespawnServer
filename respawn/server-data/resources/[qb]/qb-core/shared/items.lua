@@ -387,4 +387,10 @@ QBShared.Items = {
     item_bench = {name = "item_bench", label = "Workbench", weight = 15000, type = "item", image = "workbench.png", unique = true, useable = true, shouldClose = false, combinable = nil, description = "A workbench to craft items."},
     attachment_bench = {name = "attachment_bench", label = "Attachment Workbench", weight = 15000, type = "item", image = "attworkbench.png", unique = true, useable = true, shouldClose = false, combinable = nil, description = "A workbench for crafting attachments."},
 
+    cert_oem                     = { name = 'cert_oem', label = 'Certificado OEM', weight = 100, type = 'item', image = 'cert_oem.png', unique = false, useable = false, shouldClose = false, description = 'Certificado de fabricación original' },
+    folio_blank                  = { name = 'folio_blank', label = 'Folio en Blanco', weight = 100, type = 'item', image = 'folio_blank.png', unique = false, useable = false, shouldClose = false, description = 'Folio limpio listo para usar' },
+    hot_parts                    = { name = 'hot_parts', label = 'Piezas Calientes', weight = 100, type = 'item', image = 'hot_parts.png', unique = false, useable = false, shouldClose = false, description = 'Componentes con números limados' },
+    kit_ceramic                  = { name = 'kit_ceramic', label = 'Kit Cerámico', weight = 100, type = 'item', image = 'kit_ceramic.png', unique = false, useable = false, shouldClose = false, description = 'Componentes cerámicos de alta resistencia' },
+    license_form                 = { name = 'license_form', label = 'Formulario de Licencia', weight = 100, type = 'item', image = 'license_form.png', unique = false, useable = false, shouldClose = false, description = 'Formulario de licencia en blanco' },
+    powder_fine                  = { name = 'powder_fine', label = 'Polvo Fino', weight = 100, type = 'item', image = 'powder_fine.png', unique = false, useable = false, shouldClose = false, description = 'Polvo industrial de alta pureza' },
 }
