@@ -13,7 +13,10 @@ local function humanError(code)
     ['no-cash'] = 'Fondos insuficientes',
     ['need-knife'] = 'Primero reclama el Cuchillo.',
     ['locked-by-progression'] = 'Aún no puedes reclamar esta familia (progresión bloqueada).',
-    ['need-level0'] = 'Primero reclama el nivel 0 de esta familia.'
+    ['need-level0'] = 'Primero reclama el nivel 0 de esta familia.',
+    ['invalid-family'] = 'Familia inválida.',
+    ['invalid-branch'] = 'Rama inválida.',
+    ['invalid-level']  = 'Nivel inválido.'
   }
   if type(code) == 'table' then
     if code.msg then return code.msg end
@@ -25,6 +28,19 @@ local function humanError(code)
     return ('Faltan materiales: %s (necesitas %s, tienes %s).'):format(name or '?', need or '?', have or '0')
   end
   return map[code] or ('Error: '..tostring(code))
+end
+
+local function validFamily(fam)
+  local families = exports.respawn_weapons:GetCatalogFamilies() or {}
+  return type(fam) == 'string' and families[fam] ~= nil
+end
+
+local function validBranch(br)
+  return br == 'heat' or br == 'civis'
+end
+
+local function validLevel(lvl)
+  return type(lvl) == 'number' and lvl >= 0 and lvl <= 9 and math.floor(lvl) == lvl
 end
 
 local function ensureSchema()
@@ -87,7 +103,12 @@ local function getPreview(branch, level)
 end
 
 QBCore.Functions.CreateCallback('respawn:workshop:getPreview', function(src, cb, family, branch, level)
-  cb(getPreview(branch, tonumber(level or 0)))
+  level = tonumber(level)
+  if not validFamily(family) or not validBranch(branch) or not validLevel(level) then
+    cb(nil)
+    return
+  end
+  cb(getPreview(branch, level))
 end)
 
 -- =======================
@@ -174,8 +195,12 @@ end
 -- =======================
 exports('RequestClaim', function(src, family, branch, level)
   local Player = QBCore.Functions.GetPlayer(src); if not Player then return false, 'no-player' end
-  branch = (branch=='heat' and 'heat') or 'civis'
-  level = tonumber(level or 0) or 0
+  family = tostring(family or '')
+  branch = tostring(branch or '')
+  level = tonumber(level)
+  if not validFamily(family) then return false, 'invalid-family' end
+  if not validBranch(branch) then return false, 'invalid-branch' end
+  if not validLevel(level) then return false, 'invalid-level' end
   local cid = Player.PlayerData.citizenid
 
   -- Lee Progression desde respawn_weapons (debe existir export en ese recurso)
@@ -244,7 +269,7 @@ end)
 -- =======================
 local function listQuickOptions(src, branch)
   local Player = QBCore.Functions.GetPlayer(src); if not Player then return {} end
-  branch = (branch=='heat' and 'heat') or 'civis'
+  if not validBranch(branch) then return {} end
   local cid = Player.PlayerData.citizenid
 
   local families = exports.respawn_weapons:GetCatalogFamilies() or {}
@@ -325,12 +350,25 @@ end)
 -- =======================
 RegisterNetEvent('respawn:workshop:quickClaimSpecific', function(branch, family, level)
   local src = source
+  level = tonumber(level)
+  if not validBranch(branch) then
+    TriggerClientEvent('QBCore:Notify', src, humanError('invalid-branch'), 'error')
+    return
+  end
+  if not validFamily(family) then
+    TriggerClientEvent('QBCore:Notify', src, humanError('invalid-family'), 'error')
+    return
+  end
+  if not validLevel(level) then
+    TriggerClientEvent('QBCore:Notify', src, humanError('invalid-level'), 'error')
+    return
+  end
   local ok, info = exports.respawn_workshops:RequestClaim(src, family, branch, level)
   if not ok then
     TriggerClientEvent('QBCore:Notify', src, humanError(info), 'error')
   else
     TriggerClientEvent('QBCore:Notify', src,
-      ('Encargo %s +%d → %ds'):format(family, tonumber(level or 0), (info.wait or 0)), 'primary')
+      ('Encargo %s +%d → %ds'):format(family, level, (info.wait or 0)), 'primary')
   end
 end)
 
@@ -343,6 +381,10 @@ QBCore.Functions.CreateCallback('respawn:workshop:quickCandidate', function(src,
 end)
 
 local function quickClaim(src, branch)
+  if not validBranch(branch) then
+    TriggerClientEvent('QBCore:Notify', src, humanError('invalid-branch'), 'error')
+    return
+  end
   local list = listQuickOptions(src, branch)
   local cand = list and list[1]
   if not cand then
