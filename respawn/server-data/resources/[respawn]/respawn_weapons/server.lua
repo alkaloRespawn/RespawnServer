@@ -161,16 +161,20 @@ local function equipLevel(src, family, level)
   level = tonumber(level or 0) or 0
   local cid = Player.PlayerData.citizenid
   local rows = ox:executeSync(
-    'SELECT branch FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND level=? LIMIT 1',
+    'SELECT branch FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND level=?',
     {cid, family, level}
   )
   if not rows or not rows[1] then
     TriggerClientEvent('QBCore:Notify', src, 'No tienes el blueprint de ese nivel.', 'error'); return
   end
-  if level>=7 then
+  if level >= 7 then
     local active = getActiveBranch(src)
-    if active ~= rows[1].branch then
-      TriggerClientEvent('QBCore:Notify', src, 'Nivel exclusivo del otro bando.', 'error'); return
+    local ok = false
+    for _, r in ipairs(rows) do
+      if r.branch == active then ok = true break end
+    end
+    if not ok then
+      TriggerClientEvent('QBCore:Notify', src, ('Este nivel es exclusivo de la rama %s.'):format(rows[1].branch), 'error'); return
     end
   end
   ox:execute('REPLACE INTO respawn_weapons_equipped (citizenid,family,level) VALUES (?,?,?)',
