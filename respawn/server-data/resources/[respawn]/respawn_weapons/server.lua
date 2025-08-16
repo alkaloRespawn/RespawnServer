@@ -2,6 +2,15 @@ local QBCore = exports['qb-core']:GetCoreObject()
 local ox = exports.oxmysql
 local Catalog = {}
 
+local webhook = GetConvar('respawn_webhook','')
+local function logEvent(ev, data)
+  local row = json.encode({ev=ev, ts=os.date('!%Y-%m-%dT%H:%M:%SZ'), data=data})
+  print('[RESPAWN]', row)
+  if webhook ~= '' then
+    PerformHttpRequest(webhook, function() end, 'POST', row, {['Content-Type']='application/json'})
+  end
+end
+
 local function loadCatalog()
   local raw = LoadResourceFile(GetCurrentResourceName(), 'data/weapons_catalog.json')
   assert(raw, '^1[respawn_weapons]^7 weapons_catalog.json no encontrado')
@@ -116,6 +125,7 @@ AddEventHandler('respawn:weapons:grantBlueprint', function(src, family, branch, 
   ox:execute('INSERT IGNORE INTO respawn_weapons_blueprints (citizenid,family,branch,level) VALUES (?,?,?,?)',
     {cid, family, branch, level})
   TriggerClientEvent('QBCore:Notify', src, ('Desbloqueado %s +%d (%s)'):format(family, level, branch), 'success')
+  logEvent('claim', {pid=cid, family=family, branch=branch, level=level})
 end)
 
 local function fetchClaimedLevels(cid)
@@ -199,6 +209,7 @@ local function equipLevel(src, family, level)
   ox:execute('REPLACE INTO respawn_weapons_equipped (citizenid,family,level) VALUES (?,?,?)',
     {cid, family, level})
   TriggerClientEvent('QBCore:Notify', src, ('Equipado %s +%d'):format(family, level), 'success')
+  logEvent('equip', {pid=cid, family=family, branch=rows[1].branch, level=level})
 end
 
 RegisterNetEvent('respawn:weapons:equip', function(family, level)

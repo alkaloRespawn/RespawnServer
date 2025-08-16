@@ -11,6 +11,15 @@ local SaveTimers = {}
 local P = {} -- [src] = {citizenid, heat=0, civis=0, active='neutral', lastSwitch=0}
 local lastEvt = {} -- anti-spam registro de eventos por fuente
 
+local webhook = GetConvar('respawn_webhook','')
+local function logEvent(ev, data)
+  local row = json.encode({ev=ev, ts=os.date('!%Y-%m-%dT%H:%M:%SZ'), data=data})
+  print('[RESPAWN]', row)
+  if webhook ~= '' then
+    PerformHttpRequest(webhook, function() end, 'POST', row, {['Content-Type']='application/json'})
+  end
+end
+
 -- SQL bootstrap
 CreateThread(function()
     ox:execute([[
@@ -57,12 +66,10 @@ end
 
 local function updateBranch(d)
   local prevActive = d.active
-  local prevSwitch = d.lastSwitch
   d.active = computeBranch(d.heat, d.civis, d.active)
-  if d.active ~= prevActive then d.lastSwitch = os.time() end
-  if d.active ~= prevActive or d.lastSwitch ~= prevSwitch then
-    print(('[alignment] %s active %s -> %s | lastSwitch %s -> %s'):format(
-      d.citizenid, prevActive, d.active, prevSwitch, d.lastSwitch))
+  if d.active ~= prevActive then
+    d.lastSwitch = os.time()
+    logEvent('branch-switch', {pid=d.citizenid, from=prevActive, to=d.active})
   end
 end
 
