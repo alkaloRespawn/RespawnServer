@@ -126,14 +126,38 @@ end
 -- =======================
 -- Progresión
 -- =======================
-local function activeGroupIndex(cid, branch, chain)
+local function fetchClaimedLevels(cid)
+  local rows = ox:executeSync('SELECT family, branch, level FROM respawn_weapons_blueprints WHERE citizenid=?', {cid}) or {}
+  local claimed = {}
+  for _,r in ipairs(rows) do
+    local fam, br, lvl = r.family, r.branch, tonumber(r.level)
+    claimed[fam] = claimed[fam] or {}
+    claimed[fam][br] = claimed[fam][br] or {}
+    claimed[fam][br][lvl] = true
+  end
+  return claimed
+end
+
+local function hasLevel(claimed, family, level, branch)
+  local fam = claimed[family]
+  if not fam then return false end
+  if branch then
+    return fam[branch] and fam[branch][level] or false
+  else
+    for _,levels in pairs(fam) do
+      if levels[level] then return true end
+    end
+  end
+  return false
+end
+
+local function activeGroupIndex(cid, branch, chain, claimed)
+  claimed = claimed or fetchClaimedLevels(cid)
   local idx = 1
   for _,group in ipairs(chain or {}) do
     local all9 = true
     for _,fam in ipairs(group) do
-      local r = ox:executeSync('SELECT 1 FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND branch=? AND level=9 LIMIT 1',
-        {cid, fam, branch})
-      if not (r and r[1]) then all9 = false break end
+      if not hasLevel(claimed, fam, 9, branch) then all9 = false break end
     end
     if all9 then idx = idx + 1 else break end
   end
@@ -152,24 +176,23 @@ exports('RequestClaim', function(src, family, branch, level)
   -- Lee Progression desde respawn_weapons (debe existir export en ese recurso)
   local Prog = (exports.respawn_weapons and exports.respawn_weapons.GetProgressionChain and exports.respawn_weapons:GetProgressionChain()) or {}
   local chain = Prog[branch] or {}
+  local claimed = fetchClaimedLevels(cid)
 
   -- Requiere cuchillo (nivel 0 global) para iniciar cualquier rama
-  local hasKnife = (ox:executeSync('SELECT 1 FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND level=0 LIMIT 1',
-    {cid, 'knife_basic'}) or {})[1]
+  local hasKnife = hasLevel(claimed, 'knife_basic', 0)
   if not hasKnife then return false, 'need-knife' end
 
   -- Validaciones de progresión y elegibilidad
   if level == 0 then
     -- Nivel 0 sólo se puede reclamar en familias del grupo ACTUAL de la rama
-    local gid = activeGroupIndex(cid, branch, chain)
+    local gid = activeGroupIndex(cid, branch, chain, claimed)
     local g = chain[gid]
     local inGroup = false
     if g then for _,f in ipairs(g) do if f == family then inGroup = true break end end end
     if not inGroup then return false, 'locked-by-progression' end
   else
     -- >0 requiere 0 previo en esa familia
-    local has0 = (ox:executeSync('SELECT 1 FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND level=0 LIMIT 1',
-      {cid, family}) or {})[1]
+    local has0 = hasLevel(claimed, family, 0)
     if not has0 then return false, 'need-level0' end
 
     -- Elegibilidad por HEAT/CIVIS
@@ -225,7 +248,8 @@ local function listQuickOptions(src, branch)
   -- Lee la Progression
   local Prog = (exports.respawn_weapons and exports.respawn_weapons.GetProgressionChain and exports.respawn_weapons:GetProgressionChain()) or {}
   local chain = Prog[branch] or {}
-  local gid = activeGroupIndex(cid, branch, chain)
+  local claimed = fetchClaimedLevels(cid)
+  local gid = activeGroupIndex(cid, branch, chain, claimed)
 
   local opts = {}
 
@@ -237,8 +261,7 @@ local function listQuickOptions(src, branch)
     if g then for _,f in ipairs(g) do if f==famKey then inGroup=true break end end end
 
     -- ¿tiene nivel 0 ya?
-    local has0 = (ox:executeSync('SELECT 1 FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND level=0 LIMIT 1',
-      {cid, famKey}) or {})[1]
+    local has0 = hasLevel(claimed, famKey, 0)
 
     -- Prioridad 1: si NO tiene 0 y está en el grupo activo → ofrecer 0 (aunque eligible sea 0)
     if (not has0) and inGroup then
@@ -257,18 +280,14 @@ local function listQuickOptions(src, branch)
       })
     elseif branchLevels and #branchLevels > 0 and eligible >= 1 then
       -- Prioridad 2: buscar el mayor nivel ≤ eligible que NO tenga aún
-      local rows = ox:executeSync('SELECT level FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND branch=?',
-        {cid, famKey, branch}) or {}
-      local claimed = {}
-      for _,r in ipairs(rows) do claimed[tonumber(r.level)] = true end
-
+      local claimedLevels = (claimed[famKey] and claimed[famKey][branch]) or {}
       for lvl = eligible, 1, -1 do
-        if not claimed[lvl] then
+        if not claimedLevels[lvl] then
           local prev = {
             placeLabel = (Workshops[branch] and Workshops[branch].label) or branch,
             costCash   = (Pricing.cash[lvl] or 0),
             timeSec    = (Pricing.timeSec[lvl] or 0),
-            materials  = GetMatBlock(branch, lvl).items or {}
+            materials  = GetMatBlock(branch, lvl).items or {},
           }
           table.insert(opts, {
             family = famKey,
