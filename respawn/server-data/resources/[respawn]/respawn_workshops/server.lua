@@ -117,12 +117,12 @@ end
 -- =======================
 function deliverOrder(id, citizenid, family, branch, level)
   ox:execute('UPDATE respawn_work_orders SET status=? WHERE id=?', {'ready', id})
+  logEvent('ready', {pid=citizenid,family=family,branch=branch,level=level,shop=branch})
   for _,src in pairs(QBCore.Functions.GetPlayers()) do
     local Player = QBCore.Functions.GetPlayer(src)
     if Player and Player.PlayerData.citizenid == citizenid then
       TriggerEvent('respawn:weapons:grantBlueprint', src, family, branch, level)
       TriggerClientEvent('QBCore:Notify', src, ('Trabajo listo: %s +%d (%s)'):format(family, level, branch), 'success')
-      logEvent('level_claimed', {pid=citizenid,family=family,branch=branch,level=level,shop=branch})
       return
     end
   end
@@ -235,7 +235,7 @@ exports('RequestClaim', function(src, family, branch, level)
     deliverOrder(id, cid, family, branch, level)
   end)
 
-  logEvent('level_order', {pid=cid,family=family,branch=branch,level=level,cash=costCash,shop=branch,sec=prev.timeSec})
+  logEvent('order', {pid=cid,family=family,branch=branch,level=level,cash=costCash,shop=branch,sec=prev.timeSec})
   return true, { id=id, ready_at=ready, wait=prev.timeSec }
 end)
 
@@ -373,7 +373,7 @@ end, 'admin')
 -- Telemetría
 -- =======================
 local webhook = GetConvar('respawn_webhook','')
-function logEvent(ev, data)
+local function logEvent(ev, data)
   local row = json.encode({ev=ev, ts=os.date('!%Y-%m-%dT%H:%M:%SZ'), data=data})
   print('[RESPAWN]', row)
   if webhook ~= '' then
