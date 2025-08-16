@@ -1,4 +1,5 @@
-local enabled = HUD.enabledByDefault
+local stored = GetResourceKvpString('respawn_hud_enabled')
+local enabled = stored == nil and HUD.enabledByDefault or GetResourceKvpInt('respawn_hud_enabled') == 1
 local state = {
   heat = 0, civis = 0, active = 'neutral',
   eligible = { heat = 0, civis = 0 },
@@ -51,6 +52,7 @@ end)
 RegisterCommand('respawn_hud', function()
   enabled = not enabled
   if enabled and state.rep == 0 then state.rep = computeRep() end
+  SetResourceKvpInt('respawn_hud_enabled', enabled and 1 or 0)
   if GetResourceState('ox_lib') == 'started' then
     lib.notify({ title='Respawn HUD', description=(enabled and 'Activado' or 'Ocultado'), type=(enabled and 'success' or 'warning') })
   end
@@ -122,7 +124,7 @@ CreateThread(function()
         drawText(anchorRight and (bx + 0.052) or (bx + 0.004), by - 0.006, 0.30, tag, c, anchorRight)
       end
 
-      Wait(0)
+      Wait(1)
     else
       Wait(500)
     end
