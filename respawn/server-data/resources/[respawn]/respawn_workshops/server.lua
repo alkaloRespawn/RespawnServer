@@ -24,7 +24,7 @@ local function humanError(code)
 end
 
 local function ensureSchema()
-  ox:executeSync([[
+  ox:executeSync([[ 
     CREATE TABLE IF NOT EXISTS respawn_work_orders (
       id INT NOT NULL AUTO_INCREMENT,
       citizenid VARCHAR(46) NOT NULL,
@@ -33,7 +33,10 @@ local function ensureSchema()
       level INT NOT NULL,
       ready_at INT NOT NULL,
       status VARCHAR(12) NOT NULL DEFAULT 'pending',
-      PRIMARY KEY (id)
+      PRIMARY KEY (id),
+      KEY citizenid (citizenid),
+      KEY ready_at (ready_at),
+      KEY status (status)
     )
   ]], {})
 end
