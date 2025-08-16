@@ -69,13 +69,24 @@ end
 
 -- ====== CALLBACK: estado para la UI ======
 QBCore.Functions.CreateCallback('respawn:weapons:getState', function(src, cb)
-  local st = loadState(src) or {claimed={}, equipped={}}
+  local st = loadState(src) or {}
+
+  local ok, high = pcall(function()
+    return exports.respawn_alignment:GetExclusiveHighTiers()
+  end)
+  local ex = ok and high or {}
+
   local state = {
     catalog = Catalog,
-    activeBranch = getActiveBranch(src),
-    eligible = { heat = getEligibleLevel(src,'heat'), civis = getEligibleLevel(src,'civis') },
-    claimed = st.claimed, equipped = st.equipped,
-    align = { exclusiveHighTiers = exports.respawn_alignment:GetExclusiveHighTiers() }
+    activeBranch = getActiveBranch(src) or 'neutral',
+    eligible = {
+      heat = getEligibleLevel(src, 'heat') or 0,
+      civis = getEligibleLevel(src, 'civis') or 0,
+    },
+    claimed = st.claimed or {},
+    equipped = st.equipped or {},
+    align = { exclusiveHighTiers = ex },
+    exclusiveHighTiers = ex,
   }
   cb(state)
 end)
