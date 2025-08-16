@@ -12,6 +12,18 @@ end
 
 loadCatalog()
 
+local function validFamily(fam)
+  return type(fam) == 'string' and Catalog and Catalog.families and Catalog.families[fam] ~= nil
+end
+
+local function validBranch(br)
+  return br == 'heat' or br == 'civis'
+end
+
+local function validLevel(lvl)
+  return type(lvl) == 'number' and lvl >= 0 and lvl <= 9 and math.floor(lvl) == lvl
+end
+
 exports('GetCatalogFamilies', function()
   return Catalog and Catalog.families or {}
 end)
@@ -94,11 +106,20 @@ end)
 -- ====== EVENTO: reclamar blueprint (vía taller) ======
 RegisterNetEvent('respawn:weapons:claim', function(family, branch, level)
   local src = source
-  local ok, info = exports.respawn_workshops:RequestClaim(src, family, branch, level)
-  if not (Catalog and Catalog.families and Catalog.families[family]) then
-  TriggerClientEvent('QBCore:Notify', src, 'Familia de arma inválida.', 'error'); return
+  level = tonumber(level)
+  if not validFamily(family) then
+    TriggerClientEvent('QBCore:Notify', src, 'Familia de arma inválida.', 'error')
+    return
   end
-
+  if not validBranch(branch) then
+    TriggerClientEvent('QBCore:Notify', src, 'Rama inválida.', 'error')
+    return
+  end
+  if not validLevel(level) then
+    TriggerClientEvent('QBCore:Notify', src, 'Nivel inválido.', 'error')
+    return
+  end
+  local ok, info = exports.respawn_workshops:RequestClaim(src, family, branch, level)
   if not ok then
     local msg = (type(info) == 'table' and info.msg) or (info or 'error')
     TriggerClientEvent('QBCore:Notify', src, 'No se pudo iniciar el trabajo: '..msg, 'error')
@@ -106,7 +127,7 @@ RegisterNetEvent('respawn:weapons:claim', function(family, branch, level)
     local wait = (info and info.wait) or 0
     TriggerClientEvent('QBCore:Notify', src, ('Encargo iniciado: listo en %ds'):format(wait), 'primary')
   end
-  end)
+end)
 
 
 -- ====== Grant interno (llamado por workshops al completar) ======
@@ -176,8 +197,13 @@ end
 
 -- ====== EVENTO: equipar nivel ======
 local function equipLevel(src, family, level)
+  family = tostring(family or '')
+  level = tonumber(level)
+  if not validFamily(family) or not validLevel(level) then
+    TriggerClientEvent('QBCore:Notify', src, 'Parámetros inválidos.', 'error')
+    return
+  end
   local Player = QBCore.Functions.GetPlayer(src); if not Player then return end
-  level = tonumber(level or 0) or 0
   local cid = Player.PlayerData.citizenid
   local rows = ox:executeSync(
     'SELECT branch FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND level=?',
