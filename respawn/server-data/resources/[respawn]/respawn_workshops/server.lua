@@ -39,9 +39,14 @@ local function ensureSchema()
       status VARCHAR(12) NOT NULL DEFAULT 'pending',
       PRIMARY KEY (id),
       KEY citizenid (citizenid),
-      KEY ready_at (ready_at),
-      KEY status (status)
+      KEY status_ready_at (status, ready_at)
     )
+  ]], {})
+
+  ox:executeSync([[ALTER TABLE respawn_work_orders
+    DROP INDEX IF EXISTS ready_at,
+    DROP INDEX IF EXISTS status,
+    ADD INDEX IF NOT EXISTS status_ready_at (status, ready_at)
   ]], {})
 end
 
