@@ -128,27 +128,28 @@ function utils.hasExport(export)
     end)
 end
 
----@param filter string | string[] | table<string, number>
----@param hasAny boolean?
----@return boolean
-local QBCore = exports['qb-core']:GetCoreObject()
+local playerItems = {}
+
+function utils.getItems()
+    return playerItems
+end
 
 ---@param filter string | string[] | table<string, number>
 ---@param hasAny boolean?
 ---@return boolean
 function utils.hasPlayerGotItems(filter, hasAny)
-    if not filter then return true end
+    if not playerItems then return true end
 
     local _type = type(filter)
 
     if _type == 'string' then
-        return QBCore.Functions.HasItem(filter)
+        return (playerItems[filter] or 0) > 0
     elseif _type == 'table' then
         local tabletype = table.type(filter)
 
         if tabletype == 'hash' then
             for name, amount in pairs(filter) do
-                local hasItem = QBCore.Functions.HasItem(name, amount)
+                local hasItem = (playerItems[name] or 0) >= amount
 
                 if hasAny then
                     if hasItem then return true end
@@ -158,7 +159,7 @@ function utils.hasPlayerGotItems(filter, hasAny)
             end
         elseif tabletype == 'array' then
             for i = 1, #filter do
-                local hasItem = QBCore.Functions.HasItem(filter[i])
+                local hasItem = (playerItems[filter[i]] or 0) > 0
 
                 if hasAny then
                     if hasItem then return true end
@@ -180,6 +181,19 @@ function utils.hasPlayerGotGroup(filter)
 end
 
 SetTimeout(0, function()
+    if utils.hasExport('ox_inventory.Items') then
+        setmetatable(playerItems, {
+            __index = function(self, index)
+                self[index] = exports.ox_inventory:Search('count', index) or 0
+                return self[index]
+            end
+        })
+
+        AddEventHandler('ox_inventory:itemCount', function(name, count)
+            playerItems[name] = count
+        end)
+    end
+
     if utils.hasExport('ox_core.GetPlayer') then
         require 'client.framework.ox'
     elseif utils.hasExport('es_extended.getSharedObject') then
