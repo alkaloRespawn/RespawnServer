@@ -24,8 +24,8 @@ local function clamp(v, a, b) return math.max(a, math.min(b, v)) end
 
 -- map score (0..100) to eligible level using config table
 local function levelFromScore(score)
-  for _,m in ipairs(AlignmentConfig.ScoreToLevel) do
-    if score>=m.min and score<=m.max then return m.lvl end
+  for lvl, m in pairs(AlignmentConfig.ScoreToLevel) do
+    if score >= m.min and score <= m.max then return lvl end
   end
   return 0
 end
@@ -107,6 +107,10 @@ exports('CanClaimHighTier', function(src, branch)
     return false, ('loyalty-cooldown:%sh'):format(left)
   end
   return true, nil
+end)
+
+exports('GetExclusiveHighTiers', function()
+  return AlignmentConfig.ExclusiveHighTiers or {}
 end)
 
 -- ========= Mutadores (validar SIEMPRE server-side) =========

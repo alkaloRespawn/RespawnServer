@@ -74,7 +74,8 @@ QBCore.Functions.CreateCallback('respawn:weapons:getState', function(src, cb)
     catalog = Catalog,
     activeBranch = getActiveBranch(src),
     eligible = { heat = getEligibleLevel(src,'heat'), civis = getEligibleLevel(src,'civis') },
-    claimed = st.claimed, equipped = st.equipped
+    claimed = st.claimed, equipped = st.equipped,
+    align = { exclusiveHighTiers = exports.respawn_alignment:GetExclusiveHighTiers() }
   }
   cb(state)
 end)

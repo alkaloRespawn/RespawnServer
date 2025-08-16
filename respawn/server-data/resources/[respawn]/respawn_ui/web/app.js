@@ -51,13 +51,8 @@ async function loadLocale(lang) {
 }
 
 async function loadData() {
-  const [wep, align] = await Promise.all([
-    fetch('data/weapons_catalog.json').then(r => r.json()),
-    fetch('data/alignment.config.json').then(r => r.json())
-  ]);
-  AppState.data = { wep, align };
-  // Mock elegible: +5 civis / +3 heat para ver estados
-  AppState.eligible = { heat: 3, civis: 5 };
+  const wep = await fetch('data/weapons_catalog.json').then(r => r.json());
+  AppState.data = { wep, align: {} };
   // Por defecto primera familia
   AppState.familyKey = Object.keys(wep.families)[0];
 }
@@ -108,7 +103,7 @@ function levelState(branch, level, claimedLevels) {
   const eligibleMax = AppState.eligible[branch] || 0;
   if (level <= eligibleMax) {
     // Si es nivel alto exclusivo y el bando no coincide → bloqueado por bando
-    const high = AppState.data.align.exclusiveHighTiers || [7,8,9];
+    const high = (AppState.data.align && AppState.data.align.exclusiveHighTiers) || [];
     if (high.includes(level) && active !== branch) return { cls:'blocked', text:t('status_blocked_by_branch') };
     if (level === 0) return { cls:'eligible', text:t('status_eligible') };
 
@@ -211,11 +206,7 @@ window.addEventListener('message', async (ev) => {
     const res = await Nui.post('ui_ready', {});
     if (res && res.state) {
       const st = res.state;
-      AppState.data = { wep: st.catalog, align: {
-        hysteresis: 10,
-        loyaltyCooldownHours: 48,
-        exclusiveHighTiers: [7,8,9]
-      }};
+      AppState.data = { wep: st.catalog, align: st.align || {} };
       AppState.familyKey = Object.keys(st.catalog.families)[0];
       AppState.activeBranch = st.activeBranch || 'neutral';
       AppState.eligible = st.eligible || {heat:0,civis:0};
@@ -231,11 +222,7 @@ window.addEventListener('message', async (ev) => {
   // (NUEVO) El cliente LUA nos envía estado actualizado
   if (data.action === 'state' && data.state) {
     const st = data.state;
-    AppState.data = { wep: st.catalog, align: {
-      hysteresis: 10,
-      loyaltyCooldownHours: 48,
-      exclusiveHighTiers: [7,8,9]
-    }};
+    AppState.data = { wep: st.catalog, align: st.align || {} };
     AppState.familyKey = AppState.familyKey || Object.keys(st.catalog.families)[0];
     AppState.activeBranch = st.activeBranch || 'neutral';
     AppState.eligible = st.eligible || {heat:0,civis:0};
