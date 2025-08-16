@@ -118,37 +118,44 @@ AddEventHandler('respawn:weapons:grantBlueprint', function(src, family, branch, 
   TriggerClientEvent('QBCore:Notify', src, ('Desbloqueado %s +%d (%s)'):format(family, level, branch), 'success')
 end)
 
-local function playerHasBlueprint(cid, family, branch, level)
-  local r = ox:executeSync('SELECT 1 FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND branch=? AND level=? LIMIT 1',
-    {cid, family, branch, level})
-  return r and r[1] ~= nil
+local function fetchClaimedLevels(cid)
+  local rows = ox:executeSync('SELECT family, branch, level FROM respawn_weapons_blueprints WHERE citizenid=?', {cid}) or {}
+  local claimed = {}
+  for _,r in ipairs(rows) do
+    local fam, br, lvl = r.family, r.branch, tonumber(r.level)
+    claimed[fam] = claimed[fam] or {}
+    claimed[fam][br] = claimed[fam][br] or {}
+    claimed[fam][br][lvl] = true
+  end
+  return claimed
 end
 
-local function playerHasAnyLevel0(cid, family)
-  -- Nivel 0 puede existir en heat o civis (lo tratamos simétrico)
-  local r = ox:executeSync('SELECT 1 FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND level=0 LIMIT 1',
-    {cid, family})
-  return r and r[1] ~= nil
-end
-
-local function groupCompleted(cid, branch, families)
-  for _,fam in ipairs(families) do
-    if not playerHasBlueprint(cid, fam, branch, 9) then
-      return false
+local function hasLevel(claimed, family, level, branch)
+  local fam = claimed[family]
+  if not fam then return false end
+  if branch then
+    return fam[branch] and fam[branch][level] or false
+  else
+    for _,levels in pairs(fam) do
+      if levels[level] then return true end
     end
   end
-  return true
+  return false
 end
 
-local function getActiveGroupIndex(cid, branch)
+local function getActiveGroupIndex(cid, branch, claimed)
+  claimed = claimed or fetchClaimedLevels(cid)
   -- 0 = antes del Grupo 1 (solo cuchillo). 1..N = grupos de Progression[branch]
   -- requisito previo: tener cuchillo (nivel 0) reclamado
-  local hasKnife = playerHasAnyLevel0(cid, 'knife_basic')
-  if not hasKnife then return 0 end
+  if not hasLevel(claimed, 'knife_basic', 0) then return 0 end
   local chain = Progression[branch] or {}
   local idx = 1
   for i, families in ipairs(chain) do
-    if groupCompleted(cid, branch, families) then
+    local all9 = true
+    for _,fam in ipairs(families) do
+      if not hasLevel(claimed, fam, 9, branch) then all9 = false break end
+    end
+    if all9 then
       idx = i + 1
     else
       break
