@@ -4,6 +4,9 @@ local ox = exports.oxmysql
 local H = AlignmentConfig.Hysteresis
 local CD = AlignmentConfig.LoyaltyCooldownHours * 3600
 
+local SAVE_DELAY = 2500 -- ms
+local SaveTimers = {}
+
 -- cache en memoria
 local P = {} -- [src] = {citizenid, heat=0, civis=0, active='neutral', lastSwitch=0}
 local lastEvt = {} -- anti-spam registro de eventos por fuente
@@ -52,6 +55,17 @@ local function computeBranch(heat, civis, prevActive)
   end
 end
 
+local function updateBranch(d)
+  local prevActive = d.active
+  local prevSwitch = d.lastSwitch
+  d.active = computeBranch(d.heat, d.civis, d.active)
+  if d.active ~= prevActive then d.lastSwitch = os.time() end
+  if d.active ~= prevActive or d.lastSwitch ~= prevSwitch then
+    print(('[alignment] %s active %s -> %s | lastSwitch %s -> %s'):format(
+      d.citizenid, prevActive, d.active, prevSwitch, d.lastSwitch))
+  end
+end
+
 local function loadPlayer(src)
   local Player = QBCore.Functions.GetPlayer(src); if not Player then return end
   local cid = Player.PlayerData.citizenid
@@ -81,10 +95,23 @@ local function savePlayer(src)
     {d.heat, d.civis, d.active, d.lastSwitch, d.citizenid})
 end
 
+
+local function scheduleSave(src)
+  if SaveTimers[src] then ClearTimeout(SaveTimers[src]) end
+  SaveTimers[src] = SetTimeout(SAVE_DELAY, function()
+    SaveTimers[src] = nil
+    savePlayer(src)
+  end)
+end
+
 AddEventHandler('playerDropped', function()
+  if SaveTimers[source] then
+    ClearTimeout(SaveTimers[source])
+    SaveTimers[source] = nil
+  end
   savePlayer(source)
-  P[source] = nil
-  lastEvt[source] = nil
+  P[source]=nil
+
 end)
 AddEventHandler('QBCore:Server:PlayerLoaded', function(src)
   loadPlayer(src)
@@ -124,10 +151,8 @@ RegisterNetEvent('respawn:alignment:addHeat', function(amount)
   lastEvt[src] = now
   local d=P[src]; if not d then loadPlayer(src); d=P[src] end
   d.heat = clamp((d.heat or 0) + (amount or 0), 0, 100)
-  local prev = d.active
-  d.active = computeBranch(d.heat, d.civis, d.active)
-  if d.active ~= prev then d.lastSwitch = os.time() end
-  savePlayer(src)
+  updateBranch(d)
+  scheduleSave(src)
   sendClientState(src)
 
 end)
@@ -141,10 +166,8 @@ RegisterNetEvent('respawn:alignment:addCivis', function(amount)
   lastEvt[src] = now
   local d=P[src]; if not d then loadPlayer(src); d=P[src] end
   d.civis = clamp((d.civis or 0) + (amount or 0), 0, 100)
-  local prev = d.active
-  d.active = computeBranch(d.heat, d.civis, d.active)
-  if d.active ~= prev then d.lastSwitch = os.time() end
-  savePlayer(src)
+  updateBranch(d)
+  scheduleSave(src)
   sendClientState(src)
 
 end)
@@ -153,17 +176,15 @@ end)
 QBCore.Commands.Add('rsp_setheat','[Respawn] Set HEAT score (admin)',{{name='score',help='0-100'}}, true, function(src,args)
   local d=P[src]; if not d then loadPlayer(src); d=P[src] end
   d.heat = clamp(tonumber(args[1]) or 0,0,100)
-  local prev=d.active; d.active = computeBranch(d.heat, d.civis, d.active)
-  if d.active ~= prev then d.lastSwitch=os.time() end
-  savePlayer(src)
+  updateBranch(d)
+  scheduleSave(src)
 end,'admin')
 
 QBCore.Commands.Add('rsp_setcivis','[Respawn] Set CIVIS score (admin)',{{name='score',help='0-100'}}, true, function(src,args)
   local d=P[src]; if not d then loadPlayer(src); d=P[src] end
   d.civis = clamp(tonumber(args[1]) or 0,0,100)
-  local prev=d.active; d.active = computeBranch(d.heat, d.civis, d.active)
-  if d.active ~= prev then d.lastSwitch=os.time() end
-  savePlayer(src)
+  updateBranch(d)
+  scheduleSave(src)
 end,'admin')
 
 QBCore.Functions.CreateCallback('respawn:alignment:getClientState', function(src, cb)
