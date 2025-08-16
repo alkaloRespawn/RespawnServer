@@ -13,6 +13,7 @@ files {
   'web/app.css',
   'web/app.js',
   'web/locales/es-ES.json',
+  'web/locales/en-EN.json',
   'web/data/weapons_catalog.json',
   'web/data/alignment.config.json'
 }
