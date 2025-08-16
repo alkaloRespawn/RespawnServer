@@ -117,6 +117,23 @@ function deliverOrder(id, citizenid, family, branch, level)
 end
 
 -- =======================
+-- Progresión
+-- =======================
+local function activeGroupIndex(cid, branch, chain)
+  local idx = 1
+  for _,group in ipairs(chain or {}) do
+    local all9 = true
+    for _,fam in ipairs(group) do
+      local r = ox:executeSync('SELECT 1 FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND branch=? AND level=9 LIMIT 1',
+        {cid, fam, branch})
+      if not (r and r[1]) then all9 = false break end
+    end
+    if all9 then idx = idx + 1 else break end
+  end
+  return idx
+end
+
+-- =======================
 -- Claim mediante Taller (VALIDACIÓN COMPLETA, incluye NIVEL 0 y PROGRESIÓN)
 -- =======================
 exports('RequestClaim', function(src, family, branch, level)
@@ -127,34 +144,18 @@ exports('RequestClaim', function(src, family, branch, level)
 
   -- Lee Progression desde respawn_weapons (debe existir export en ese recurso)
   local Prog = (exports.respawn_weapons and exports.respawn_weapons.GetProgressionChain and exports.respawn_weapons:GetProgressionChain()) or {}
+  local chain = Prog[branch] or {}
 
   -- Requiere cuchillo (nivel 0 global) para iniciar cualquier rama
   local hasKnife = (ox:executeSync('SELECT 1 FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND level=0 LIMIT 1',
     {cid, 'knife_basic'}) or {})[1]
   if not hasKnife then return false, 'need-knife' end
 
-  -- Índice de grupo activo: avanza cuando TODAS las familias del grupo tienen +9/-9
-  local function activeGroupIndex()
-    local idx = 1
-    local chain = Prog[branch] or {}
-    for _,group in ipairs(chain) do
-      local all9 = true
-      for _,fam in ipairs(group) do
-        local r = ox:executeSync('SELECT 1 FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND branch=? AND level=9 LIMIT 1',
-          {cid, fam, branch})
-        if not (r and r[1]) then all9 = false break end
-      end
-      if all9 then idx = idx + 1 else break end
-    end
-    return idx
-  end
-
   -- Validaciones de progresión y elegibilidad
   if level == 0 then
     -- Nivel 0 sólo se puede reclamar en familias del grupo ACTUAL de la rama
-    local gid = activeGroupIndex()
-    local chainB = Prog[branch] or {}
-    local g = chainB[gid]
+    local gid = activeGroupIndex(cid, branch, chain)
+    local g = chain[gid]
     local inGroup = false
     if g then for _,f in ipairs(g) do if f == family then inGroup = true break end end end
     if not inGroup then return false, 'locked-by-progression' end
@@ -215,22 +216,7 @@ local function listQuickOptions(src, branch)
   -- Lee la Progression
   local Prog = (exports.respawn_weapons and exports.respawn_weapons.GetProgressionChain and exports.respawn_weapons:GetProgressionChain()) or {}
   local chain = Prog[branch] or {}
-
-  -- Índice de grupo activo (misma lógica simple que arriba)
-  local function activeGroupIndex()
-    local idx = 1
-    for _,group in ipairs(chain) do
-      local all9 = true
-      for _,fam in ipairs(group) do
-        local r = ox:executeSync('SELECT 1 FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND branch=? AND level=9 LIMIT 1',
-          {cid, fam, branch})
-        if not (r and r[1]) then all9=false break end
-      end
-      if all9 then idx = idx + 1 else break end
-    end
-    return idx
-  end
-  local gid = activeGroupIndex()
+  local gid = activeGroupIndex(cid, branch, chain)
 
   local opts = {}
 
