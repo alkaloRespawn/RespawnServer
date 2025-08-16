@@ -1,33 +1,50 @@
-# respawn_alignment (placeholder)
-
-## Objetivo
-- Calcular y exponer `active_branch` (heat/civis/neutral) con histéresis B=10
-- Mapear score→nivel elegible (0..9)
-- Enforce cooldown de lealtad (48h) para reclamar +7/+8/+9 tras cambio
-
-## Estados/Storage (futuro)
-- player_alignment: heat, civis, neutral
-- scores: heat_score, civis_score
-- timestamps: last_branch_switch
-
-## Eventos/Exports (plan)
-- server export: GetActiveBranch(playerId) → 'heat'|'civis'|'neutral'
-- server export: GetEligibleLevel(playerId, branch) → 0..9
-- server event: respawn:alignment:addHeat / addCivis (validados)
-- server event: respawn:alignment:requestBranchSwitch (aplica histéresis)
-- server export: CanClaimHighTier(playerId, branch) → respeta cooldown
-
-## Seguridad
-- Validación server-authoritative de cambios de score
-- Rate limit por acción
-- Logs de auditoría
-
 # respawn_alignment
-- Expone branch activo con histéresis (B=10) y cooldown de lealtad (48h).
-- Mapea scores a nivel elegible 0..9.
-- Validación server-side (sin implementación en esta fase).
 
-## Exports (planeados)
-- GetActiveBranch(playerId) -> 'heat'|'civis'|'neutral'
-- GetEligibleLevel(playerId, branch) -> 0..9
-- CanClaimHighTier(playerId, branch) -> bool (respeta cooldown)
+Core HEAT/CIVIS alignment tracking used by other Respawn systems.
+
+## Exports & Callbacks
+
+### Server exports
+```lua
+local branch = exports.respawn_alignment:GetActiveBranch(source)
+local level = exports.respawn_alignment:GetEligibleLevel(source, 'heat')
+local ok, err = exports.respawn_alignment:CanClaimHighTier(source, 'civis')
+local tiers = exports.respawn_alignment:GetExclusiveHighTiers()
+```
+
+### QBCore callbacks
+- `respawn:alignment:getClientState` → returns `{ heat, civis, active, eligible = { heat, civis } }`
+  ```lua
+  QBCore.Functions.TriggerCallback('respawn:alignment:getClientState', cb)
+  ```
+
+## Events
+
+### Client → Server
+- `respawn:alignment:addHeat(amount)`
+- `respawn:alignment:addCivis(amount)`
+
+### Server → Client
+- `respawn:alignment:clientState` → `{ heat, civis, active, eligible }`
+
+### Debug
+- `respawn:alignment:debug` (emits full state for diagnostics)
+
+## Database
+`respawn_alignment` table:
+
+| column       | type         | notes                             |
+|--------------|--------------|-----------------------------------|
+| citizenid    | VARCHAR(46)  | primary key                       |
+| heat_score   | INT          | default 0                         |
+| civis_score  | INT          | default 0                         |
+| active_branch| VARCHAR(8)   | default 'neutral'                 |
+| last_switch  | INT          | unix timestamp of last branch swap|
+
+## Convars
+- `respawn_webhook` – optional URL to receive telemetry/audit events.
+- `respawn_locale` – locale for UI resources (not used directly here).
+
+## Load order & dependencies
+- Requires `qb-core` and `oxmysql`.
+- Start this resource **before** `respawn_weapons`, `respawn_workshops` and `respawn_hud` so they can read alignment data.

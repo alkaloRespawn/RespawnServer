@@ -1,20 +1,38 @@
-# respawn_ui (placeholder)
-
-## Objetivo
-- Panel de armas (dos columnas HEAT/CIVIS, filas 0..9)
-- Estados: Bloqueado/Elegible/Desbloqueado/Bloqueado por bando
-- Botón RECLAMAR → confirmación de coste/tiempo/lugar
-
-## Interfaz (plan)
-- NUI <-> client: postMessage/events
-- client <-> server: TriggerServerEvent para reclamos / consultas
-- Datos mostrados: provenir de respawn_weapons + respawn_alignment
-
-## Accesibilidad/UX
-- Tooltips de attachments
-- Etiquetas claras de exclusividad de bando y cooldown
-
 # respawn_ui
-- Panel de armas: dos columnas (HEAT/CIVIS), filas 0..9, estados y botón RECLAMAR.
-- HUD: barras HEAT/CIVIS/Rep y toasts.
-- Locales ES/EN en locales/*.json
+
+NUI panel for browsing and claiming weapons, plus basic HUD hooks.
+
+## Exports & Callbacks
+Este recurso no expone exports propios.
+
+### Callbacks consumidos
+- `respawn:weapons:getState` – estado completo para poblar el panel.
+- `respawn:workshop:getPreview` – datos de coste/tiempo/materiales para "inspeccionar".
+  ```lua
+  QBCore.Functions.TriggerCallback('respawn:weapons:getState', cb)
+  QBCore.Functions.TriggerCallback('respawn:workshop:getPreview', cb, family, branch, level)
+  ```
+
+## Events
+
+### Client → Server
+- `respawn:weapons:claim(family, branch, level)`
+- `respawn:weapons:equip(family, level)`
+
+### UI (NUI) ↔ Client
+- `ui_ready` – NUI pide estado inicial.
+- `close` – cierra el panel y libera foco.
+- `claim` – solicita reclamar blueprint.
+- `equip` – solicita equipar nivel.
+- `inspect` – consulta preview de taller.
+
+## Database
+- Ninguna tabla propia.
+
+## Convars
+- `respawn_locale` – controla el idioma de la NUI.
+- `respawn_webhook` – telemetría global (no usado directamente).
+
+## Load order & dependencies
+- Requiere `qb-core`.
+- Depende de `respawn_weapons` y `respawn_workshops` para callbacks; iniciar después de ambos.
