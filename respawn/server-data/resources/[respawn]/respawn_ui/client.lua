@@ -1,65 +1,38 @@
 local uiOpen = false
+local canToggle = true
 local locale = GetConvar('respawn_locale', 'es-ES')
 local QBCore = exports['qb-core']:GetCoreObject()
 
-RegisterCommand('respawn_weapons', function()
+-- Single command / keybind
+RegisterCommand('respawn_toggle_ui', function()
+    if not canToggle then return end
+    canToggle = false
+
     uiOpen = not uiOpen
     SetNuiFocus(uiOpen, uiOpen)
+    SetNuiFocusKeepInput(false)
     SendNUIMessage({ action = uiOpen and 'open' or 'close', locale = locale })
-end, false)
-RegisterKeyMapping('respawn_weapons', 'Abrir panel de armas Respawn', 'keyboard', 'F6')
 
--- UI ready -> devolvemos activeBranch/eligible/claimed desde server
+    SetTimeout(180, function() canToggle = true end)
+end, false)
+RegisterKeyMapping('respawn_toggle_ui', 'Respawn: abrir/cerrar panel', 'keyboard', 'F6')
+
+-- NUI Ready -> send state
 RegisterNUICallback('ui_ready', function(_, cb)
     QBCore.Functions.TriggerCallback('respawn:weapons:getState', function(state)
         cb({ ok = true, state = state })
     end)
 end)
 
+-- Close from NUI
 RegisterNUICallback('close', function(_, cb)
     uiOpen = false
     SetNuiFocus(false, false)
+    SendNUIMessage({ action = 'close' })
     cb({ ok = true })
 end)
 
-RegisterNUICallback('claim', function(data, cb)
-    TriggerServerEvent('respawn:weapons:claim', data.family, data.branch, data.level)
-    cb({ ok = true })
-end)
-
-RegisterNUICallback('equip', function(data, cb)
-    TriggerServerEvent('respawn:weapons:equip', data.family, data.level)
-    cb({ ok = true })
-end)
-
--- ... (resto igual que te di)
-RegisterNUICallback('inspect', function(data, cb)
-    -- data: { family, branch, level }
-    QBCore.Functions.TriggerCallback('respawn:workshop:getPreview', function(prev)
-        cb({ ok = true, preview = prev })
-    end, data.family, data.branch, data.level)
-end)
-
-local uiOpen = false
-local canToggle = true
-
-RegisterCommand('respawn_toggle_ui', function()
-    if not canToggle then return end
-    canToggle = false
-    uiOpen = not uiOpen
-
-    SetNuiFocus(uiOpen, uiOpen)
-    SetNuiFocusKeepInput(false) -- evita “tragarse” tecleo al salir
-    SendNUIMessage({ action = uiOpen and 'open' or 'close' })
-
-    -- anti-doble pulsación
-    SetTimeout(180, function() canToggle = true end)
-end, false)
-
--- Mapea F6 -> comando (visible en ajustes de FiveM)
-RegisterKeyMapping('respawn_toggle_ui', 'Respawn: abrir/cerrar panel', 'keyboard', 'F6')
-
--- Cerrar desde NUI (ESC o botón X)
+-- Backward-compat close endpoint
 RegisterNUICallback('respawn_close', function(_, cb)
     uiOpen = false
     SetNuiFocus(false, false)
@@ -67,7 +40,24 @@ RegisterNUICallback('respawn_close', function(_, cb)
     cb('ok')
 end)
 
--- Opcional: cerrar si se pierde el focus por alt-tab
+-- Inspect (preview) -> server callback
+RegisterNUICallback('inspect', function(data, cb)
+    QBCore.Functions.TriggerCallback('respawn:workshop:getPreview', function(prev)
+        cb({ ok = true, preview = prev })
+    end, data.family, data.branch, data.level)
+end)
+
+-- Claim / Equip actions
+RegisterNUICallback('claim', function(data, cb)
+    TriggerServerEvent('respawn:weapons:claim', data.family, data.branch, data.level)
+    cb({ ok = true })
+end)
+RegisterNUICallback('equip', function(data, cb)
+    TriggerServerEvent('respawn:weapons:equip', data.family, data.level)
+    cb({ ok = true })
+end)
+
+-- Close if NUI loses focus (alt-tab)
 CreateThread(function()
     while true do
         if uiOpen and not IsNuiFocused() then
@@ -77,4 +67,3 @@ CreateThread(function()
         Wait(250)
     end
 end)
-

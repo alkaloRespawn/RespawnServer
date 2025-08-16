@@ -61,3 +61,6 @@ Si quieres, te preparo un **script `verify-db.bat`** que compruebe contenedor, p
 
 
 docker exec -it respawn_mariadb mysql -u alkalo -p123456 QBCore_A0764D
+
+
+https://portal.cfx.re/servers/registration-keys?row=ymze6k
