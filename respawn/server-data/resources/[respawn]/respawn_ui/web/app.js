@@ -202,14 +202,13 @@ window.addEventListener('message', async (ev) => {
     AppState.locale = data.locale || 'es-ES';
     await loadLocale(AppState.locale);
 
-    // Pide estado al server:
-    const res = await Nui.post('ui_ready', {});
-    if (res && res.state) {
-      const st = res.state;
+    // Estado enviado directamente por el cliente LUA
+    const st = data.state || data;
+    if (st && st.catalog) {
       AppState.data = { wep: st.catalog, align: st.align || {} };
       AppState.familyKey = Object.keys(st.catalog.families)[0];
       AppState.activeBranch = st.activeBranch || 'neutral';
-      AppState.eligible = st.eligible || {heat:0,civis:0};
+      AppState.eligible = st.eligible || { heat: 0, civis: 0 };
       AppState.claimed = st.claimed || {};
     }
 
