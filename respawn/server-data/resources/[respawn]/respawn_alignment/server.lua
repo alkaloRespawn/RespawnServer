@@ -6,6 +6,7 @@ local CD = AlignmentConfig.LoyaltyCooldownHours * 3600
 
 -- cache en memoria
 local P = {} -- [src] = {citizenid, heat=0, civis=0, active='neutral', lastSwitch=0}
+local lastEvt = {} -- anti-spam registro de eventos por fuente
 
 -- SQL bootstrap
 CreateThread(function()
@@ -80,7 +81,11 @@ local function savePlayer(src)
     {d.heat, d.civis, d.active, d.lastSwitch, d.citizenid})
 end
 
-AddEventHandler('playerDropped', function() savePlayer(source); P[source]=nil end)
+AddEventHandler('playerDropped', function()
+  savePlayer(source)
+  P[source] = nil
+  lastEvt[source] = nil
+end)
 AddEventHandler('QBCore:Server:PlayerLoaded', function(src)
   loadPlayer(src)
   sendClientState(src) -- ← para que el HUD tenga valores al entrar
@@ -111,7 +116,13 @@ end)
 
 -- ========= Mutadores (validar SIEMPRE server-side) =========
 RegisterNetEvent('respawn:alignment:addHeat', function(amount)
-  local src = source; local d=P[src]; if not d then loadPlayer(src); d=P[src] end
+  local src = source
+  local now = os.clock()
+  if lastEvt[src] and (now - lastEvt[src]) < 1.0 then
+    return -- demasiado pronto, ignorar
+  end
+  lastEvt[src] = now
+  local d=P[src]; if not d then loadPlayer(src); d=P[src] end
   d.heat = clamp((d.heat or 0) + (amount or 0), 0, 100)
   local prev = d.active
   d.active = computeBranch(d.heat, d.civis, d.active)
@@ -122,7 +133,13 @@ RegisterNetEvent('respawn:alignment:addHeat', function(amount)
 end)
 
 RegisterNetEvent('respawn:alignment:addCivis', function(amount)
-  local src = source; local d=P[src]; if not d then loadPlayer(src); d=P[src] end
+  local src = source
+  local now = os.clock()
+  if lastEvt[src] and (now - lastEvt[src]) < 1.0 then
+    return -- demasiado pronto, ignorar
+  end
+  lastEvt[src] = now
+  local d=P[src]; if not d then loadPlayer(src); d=P[src] end
   d.civis = clamp((d.civis or 0) + (amount or 0), 0, 100)
   local prev = d.active
   d.active = computeBranch(d.heat, d.civis, d.active)
