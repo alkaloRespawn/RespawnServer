@@ -147,6 +147,7 @@ function renderAll() {
   renderColumn('civis');
 
   els.app.classList.remove('hidden');
+  els.app.style.display = 'block';
   // HUD mock (solo para pintar algo)
   els.hudHeat.style.width = '35%';
   els.hudCivis.style.width = '55%';
@@ -179,11 +180,16 @@ async function openModal(branch, entry) {
   els.btnCancel.onclick = closeModal;
 
   els.modal.classList.remove('hidden');
+  els.modal.style.display = 'flex';
 }
-function closeModal(){ els.modal.classList.add('hidden'); }
+function closeModal(){
+  els.modal.classList.add('hidden');
+  els.modal.style.display = 'none';
+}
 
 function closeUI(){
   els.app.classList.add('hidden');
+  els.app.style.display = 'none';
   Nui.post('close', {});
 }
 
