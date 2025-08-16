@@ -50,12 +50,6 @@ async function loadLocale(lang) {
   AppState.locales = await res.json();
 }
 
-async function loadData() {
-  const wep = await fetch('data/weapons_catalog.json').then(r => r.json());
-  AppState.data = { wep, align: {} };
-  // Por defecto primera familia
-  AppState.familyKey = Object.keys(wep.families)[0];
-}
 
 function t(key, vars={}) {
   let s = AppState.locales[key] || key;
@@ -202,9 +196,9 @@ window.addEventListener('message', async (ev) => {
     AppState.locale = data.locale || 'es-ES';
     await loadLocale(AppState.locale);
 
-    // Estado enviado directamente por el cliente LUA
-    const st = data.state || data;
-    if (st && st.catalog) {
+    const r = await Nui.post('ui_ready');
+    const st = (r && r.state) || {};
+    if (st.catalog) {
       AppState.data = { wep: st.catalog, align: st.align || {} };
       AppState.familyKey = Object.keys(st.catalog.families)[0];
       AppState.activeBranch = st.activeBranch || 'neutral';
