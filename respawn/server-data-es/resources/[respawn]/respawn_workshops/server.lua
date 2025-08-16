@@ -187,7 +187,7 @@ exports('RequestClaim', function(src, family, branch, level)
   if costCash > 0 then Player.Functions.RemoveMoney('cash', costCash, 'respawn-claim') end
   removeMaterials(src, mats)
 
-  local ready = now() + (prev.timeSec or 0)
+  local ready = os.time() + (prev.timeSec or 0)
   local id = ox:executeSync(
     'INSERT INTO respawn_work_orders (citizenid,family,branch,level,ready_at) VALUES (?,?,?,?,?)',
     {cid, family, branch, level, ready}
