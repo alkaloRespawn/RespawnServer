@@ -323,8 +323,7 @@ QBCore.Functions.CreateCallback('respawn:workshop:quickCandidate', function(src,
   cb(list and list[1] or nil)
 end)
 
-RegisterNetEvent('respawn:workshop:quickClaim', function(branch)
-  local src = source
+local function quickClaim(src, branch)
   local list = listQuickOptions(src, branch)
   local cand = list and list[1]
   if not cand then
@@ -338,7 +337,18 @@ RegisterNetEvent('respawn:workshop:quickClaim', function(branch)
     TriggerClientEvent('QBCore:Notify', src,
       ('Encargo %s +%d → %ds'):format(cand.family, cand.level, (info.wait or 0)), 'primary')
   end
+end
+
+RegisterNetEvent('respawn:workshop:quickClaim', function(branch)
+  quickClaim(source, branch)
 end)
+
+-- ========= Comando de test =========
+QBCore.Commands.Add('rsp_wquick', '[Respawn] Quick claim de taller', {
+  {name='branch', help='heat/civis'}
+}, true, function(src, args)
+  quickClaim(src, args[1])
+end, 'admin')
 
 -- =======================
 -- Telemetría

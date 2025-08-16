@@ -155,12 +155,9 @@ end
 
 
 -- ====== EVENTO: equipar nivel ======
-RegisterNetEvent('respawn:weapons:equip', function(family, level)
-  local src = source
+local function equipLevel(src, family, level)
   local Player = QBCore.Functions.GetPlayer(src); if not Player then return end
   level = tonumber(level or 0) or 0
-
-  -- valida que esté reclamado en alguna rama
   local cid = Player.PlayerData.citizenid
   local rows = ox:executeSync(
     'SELECT branch FROM respawn_weapons_blueprints WHERE citizenid=? AND family=? AND level=? LIMIT 1',
@@ -169,18 +166,39 @@ RegisterNetEvent('respawn:weapons:equip', function(family, level)
   if not rows or not rows[1] then
     TriggerClientEvent('QBCore:Notify', src, 'No tienes el blueprint de ese nivel.', 'error'); return
   end
-
-  -- si es high-tier, exige bando activo coincidente
   if level>=7 then
     local active = getActiveBranch(src)
     if active ~= rows[1].branch then
       TriggerClientEvent('QBCore:Notify', src, 'Nivel exclusivo del otro bando.', 'error'); return
     end
   end
-
-  -- aplica "equipado" (cosmético/adjuntos los manejarás en cliente/juego más adelante)
   ox:execute('REPLACE INTO respawn_weapons_equipped (citizenid,family,level) VALUES (?,?,?)',
     {cid, family, level})
   TriggerClientEvent('QBCore:Notify', src, ('Equipado %s +%d'):format(family, level), 'success')
+end
+
+RegisterNetEvent('respawn:weapons:equip', function(family, level)
+  equipLevel(source, family, level)
 end)
+
+-- ========= Comandos de test (admin) =========
+QBCore.Commands.Add('rsp_grantbp', '[Respawn] Otorga blueprint de arma', {
+  {name='family', help='familia'},
+  {name='branch', help='heat/civis'},
+  {name='level',  help='0-9'}
+}, true, function(src, args)
+  local fam = tostring(args[1] or '')
+  local br  = tostring(args[2] or '')
+  local lvl = tonumber(args[3] or 0) or 0
+  TriggerEvent('respawn:weapons:grantBlueprint', src, fam, br, lvl)
+end, 'admin')
+
+QBCore.Commands.Add('rsp_equip', '[Respawn] Equipa nivel de arma', {
+  {name='family', help='familia'},
+  {name='level',  help='0-9'}
+}, true, function(src, args)
+  local fam = tostring(args[1] or '')
+  local lvl = tonumber(args[2] or 0) or 0
+  equipLevel(src, fam, lvl)
+end, 'admin')
 
