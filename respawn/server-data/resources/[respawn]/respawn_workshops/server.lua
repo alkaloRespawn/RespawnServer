@@ -10,11 +10,15 @@ local function humanError(code)
     ['no-player'] = 'Jugador no encontrado.',
     ['not-eligible'] = 'No eres elegible todavía.',
     ['loyalty'] = 'Bloqueado por lealtad tras cambio de bando.',
-    ['no-cash'] = 'Fondos insuficientes.',
+    ['no-cash'] = 'Fondos insuficientes',
     ['need-knife'] = 'Primero reclama el Cuchillo.',
     ['locked-by-progression'] = 'Aún no puedes reclamar esta familia (progresión bloqueada).',
     ['need-level0'] = 'Primero reclama el nivel 0 de esta familia.'
   }
+  if type(code) == 'table' then
+    if code.msg then return code.msg end
+    code = code.code
+  end
   -- no-item:name|need:N|have:H
   if type(code) == 'string' and code:sub(1,7) == 'no-item' then
     local name, need, have = code:match('no%-item:(.-)|need:(%d+)|have:(%d+)')
@@ -184,7 +188,9 @@ exports('RequestClaim', function(src, family, branch, level)
   local costCash = prev.costCash or 0
   local mats = prev.materials or {}
 
-  if Player.Functions.GetMoney('cash') < costCash then return false, 'no-cash' end
+  if Player.Functions.GetMoney('cash') < costCash then
+    return false, {code='no-cash', msg='Fondos insuficientes'}
+  end
   local ok, name, need, have = hasMaterials(src, mats)
   if not ok then return false, ('no-item:%s|need:%d|have:%d'):format(name,need,have) end
 

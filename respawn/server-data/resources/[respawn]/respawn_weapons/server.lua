@@ -100,7 +100,8 @@ RegisterNetEvent('respawn:weapons:claim', function(family, branch, level)
   end
 
   if not ok then
-    TriggerClientEvent('QBCore:Notify', src, 'No se pudo iniciar el trabajo: '..(info or 'error'), 'error')
+    local msg = (type(info) == 'table' and info.msg) or (info or 'error')
+    TriggerClientEvent('QBCore:Notify', src, 'No se pudo iniciar el trabajo: '..msg, 'error')
   else
     local wait = (info and info.wait) or 0
     TriggerClientEvent('QBCore:Notify', src, ('Encargo iniciado: listo en %ds'):format(wait), 'primary')
