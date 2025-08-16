@@ -22,6 +22,14 @@ end)
 
 local function clamp(v, a, b) return math.max(a, math.min(b, v)) end
 
+-- map score (0..100) to eligible level using config table
+local function levelFromScore(score)
+  for _,m in ipairs(AlignmentConfig.ScoreToLevel) do
+    if score>=m.min and score<=m.max then return m.lvl end
+  end
+  return 0
+end
+
 local function sendClientState(src)
   local d = P[src]; if not d then return end
   local st = {
@@ -34,14 +42,6 @@ local function sendClientState(src)
     }
   }
   TriggerClientEvent('respawn:alignment:clientState', src, st)
-end
-
-
-local function levelFromScore(score)
-  for _,m in ipairs(AlignmentConfig.ScoreToLevel) do
-    if score>=m.min and score<=m.max then return m.lvl end
-  end
-  return 0
 end
 
 local function computeBranch(heat, civis, prevActive)
